@@ -1,11 +1,11 @@
 {
- "version": "3.6.1",
+ "version": "3.7",
  "notes": [
-  "Build menu: locked buildings (C-RAM, interceptor drones, field hospital, workshop, oil) now show as locked",
-  "Badge shine now stays inside the rank badge",
-  "Locked items are greyed out with a Locked tag",
-  "The introduction closes for good once finished",
-  "New Iron Horizon launcher with one-click updates"
+  "Bots now know if you are a teammate, an ally or an enemy and talk to you that way",
+  "Bots remember the conversation, ask follow-up questions and understand yes or no answers",
+  "Bots comment on the battle: bases taken, kill counts, and ask for help when attacked",
+  "Bots chat with each other, and threats in all chat go to your enemies",
+  "Much bigger vocabulary for all four bot personalities"
  ],
  "files": [
   "index.html",

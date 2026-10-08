@@ -395,7 +395,7 @@ body.pre #top,body.pre #rail,body.pre #mini,body.pre #feed,body.pre #labels,body
       <div class="lh">Unlocks</div><div id="unlocks"></div></div>
     <div id="tabMp" hidden><div class="netrow"><span class="netstat" id="netStat">Connecting</span></div><div id="lobby"></div><div id="friendsBox"></div></div>
     <div class="prof" id="prof"></div>
-    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 3.6.1 (build menu lock fix)</div>
+    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 3.7 (real conversations)</div>
     <div class="keys">
       <div><b>Left click or drag</b> select units</div><div><b>Right click</b> move or attack</div>
       <div><b>WASD or arrows</b> move camera</div><div><b>Wheel</b> zoom, <b>Q E</b> rotate, <b>R T</b> tilt</div>
@@ -1582,7 +1582,7 @@ function processEvents(){
     case 'bounty':if(e.team===ME)floatText(e.x,e.y+6,e.z,'+$'+e.v);break;
     case 'war':banner('War has started','Enemy forces are on the move.',3.2,'alert');AU.ui('alert');break;
     }
-    if(typeof uiEvent==='function')uiEvent(e);if(typeof chatOnEvent==='function')chatOnEvent(e)}
+    if(typeof uiEvent==='function')uiEvent(e);if(typeof chatOnEvent==='function')chatOnEvent(e);if(typeof talkEvent==='function')talkEvent(e)}
   G.ev.length=0}
 // beams scale incorrectly with updShock: patch dome/beam handling
 const _updShock=updShock;
@@ -1859,7 +1859,7 @@ function crater(x,z,r,depth){
     if(dd>1.4)continue;const i=iz*(GN+1)+ix;HF[i]+=dd<1?-depth*(1-dd*dd):depth*.25*Math.sin((dd-1)/.4*PI)}
   emit({e:'crater',x,z,r,ix0:x0,ix1:x1,iz0:z0,iz1:z1})}
 
-function damage(e,amt,cls,team){if(e.dead)return;
+function damage(e,amt,cls,team){if(e.dead)return;if(team>=0)e.lastBy=team;
   const ar=e.kind==='s'?'struct':UT[e.t].armor;const a=amt*MULT[cls][ar]*(team>=0?MODS(team).dmg[cls]||1:1);if(a<=0)return;
   e.hp-=a;e.lastHit=G.t;e.lastBy=team;
   if(e.hp<=0){e.hp=0;if(e.kind==='u')killUnit(e,team);else killStruct(e,team)}}
@@ -3400,6 +3400,139 @@ function trainTick(){UIS.tr=UIS.tr||{};const el=$('trainBox');if(!el)return;if(!
   if(all&&!UIS.trDone){UIS.trDone=1;const p=P_();if(!p.tutDone){p.tutDone=1;gainXP(p,300);awardBadges(p);SAVE.saveProfile()}AU.ui('capture');setTimeout(()=>{el.hidden=true;UIS.training=0;UIS.trClosed=1},8000)}}
 function trainEvent(e){if(!trainingOn())return;UIS.tr=UIS.tr||{};if(e.e==='conStart'&&e.s.team===ME)UIS.tr.build=1;else if(e.e==='capture'&&e.t===ME)UIS.tr.cap=1;else if(e.e==='launch'&&e.m.team===ME)UIS.tr.strike=1;else if(e.e==='jets'&&e.team===ME)UIS.tr.strike=1;else if(e.e==='barrage'&&e.team===ME)UIS.tr.strike=1}
 
+// ================= CONVERSATION ENGINE =================
+// Bots know who they are talking to (teammate, ally or enemy), remember what was said and what happened
+// on the battlefield, ask follow-up questions and understand yes/no answers, and start conversations themselves.
+const chatIncomingBase=chatIncoming;
+const TK={log:[],dmg:{},last:{},pend:{},said:{},nextPro:0,recent:[]};
+function fresh(L,b){const used=TK.said[b]||(TK.said[b]=[]);let line=pick(L);for(let k=0;k<8&&(used.includes(line)||TK.recent.includes(line));k++)line=pick(L);used.push(line);if(used.length>14)used.shift();TK.recent.push(line);if(TK.recent.length>24)TK.recent.shift();return line}
+function tkRel(b,h){return ally(b,h)?(G.side&&G.side[b]===G.side[h]?'mate':'ally'):'enemy'}
+function tkName(h){return G.T[h].human&&h===ME?(NET.nick||'commander'):G.T[h].human?((NET.slotName&&NET.slotName(h))||G.T[h].name):G.T[h].name}
+function tkBases(t){return G.Z.filter(z=>z.owner===t)}
+function tkNear(t,from){const L=tkBases(t);if(!L.length)return null;if(!from)return pick(L);return L.sort((a,b)=>d2(a.x,a.z,from.x,from.z)-d2(b.x,b.z,from.x,from.z))[0]}
+function tkFoe(b){let best=-1,bv=0;for(let o=0;o<NT;o++){if(ally(o,b))continue;const v=(TK.dmg[o+'>'+b]||0);if(v>bv){bv=v;best=o}}return best}
+function tkSlots(b,h,x){x=x||{};const B=G.T[b],H=G.T[h];const foe=tkFoe(b);const myB=tkNear(b),enB=x.enemyBase||(()=>{const L=G.Z.filter(z=>!ally(z.owner,b)&&z.owner>=0&&(!z.hidden||z.rev[b]));return L.length?pick(L):null})();
+  return{you:tkName(h),me:B.name,base:myB?myB.name:'my last base',bases:B.have.zones,units:B.have.inf+B.have.veh+B.have.air,money:'$'+Math.round(B.money).toLocaleString('en-US'),
+    enemyBase:enB?enB.name:'their base',foe:foe>=0?tkName(foe):'everyone',yourBases:H.have.zones,killsOnYou:TK.dmg[b+'>'+h]||0,yourKills:TK.dmg[h+'>'+b]||0,
+    lead:(()=>{const s=G.T.filter(T=>!T.elim).sort((a,c)=>c.have.zones-a.have.zones)[0];return s?tkName(s.i):'nobody'})(),target:x.target?x.target.name:'there',time:Math.floor(G.t/60)+' minutes'}}
+function fill(s,v){return s.replace(/\{(\w+)\}/g,(_,k)=>v[k]!==undefined?v[k]:'')}
+// openers and closers give each persona a voice and make lines less repetitive
+const VOICE={salty:{o:['ugh,','look,','lol','honestly,','bro,','seriously?','great.',''],c:['','.','. whatever','. obviously','. try harder','. cope']},
+  chill:{o:['hey,','haha','ok so','yeah,','oh nice,','alright,',''],c:['','.',' :)','. no stress','. all good','. fun game']},
+  tryhard:{o:['copy.','noted.','listen,','focus.','ok.',''],c:['','.','. execute.','. stay sharp','. no mistakes']},
+  friendly:{o:['hi!','ooh','yay,','hehe','aw,',''],c:['','!',' :D','. you got this!','. teamwork!']}};
+function voice(per,line){const V=VOICE[per]||VOICE.chill;if(Math.random()<.6||line.length<16||/^(lol|haha|ok|ugh|hey|yo)\b/.test(line))return line;let o=pick(V.o);const w=o.replace(/[^a-z]/gi,'').toLowerCase();if(w&&line.toLowerCase().startsWith(w))o='';const c=/[?!]$/.test(line)?'':pick(V.c);return((o?o+' ':'')+line+c).replace(/\.\./g,'.').replace(/\s+\./g,'.')}
+// line banks by intent, relationship and persona. {slots} are filled from the live game.
+const LINES={
+  hello:{mate:{salty:['oh, you are on my team. great. try to keep up, {you}','hi {you}. do not lose {base} for me'],chill:['hey {you}, glad we are on the same side','yo {you}! let us have a good one'],tryhard:['{you}. stay on comms, we win this together','welcome, {you}. focus fire on {enemyBase}'],friendly:['hiii {you}! best team ever','hello partner!']},
+    ally:{salty:['hey. we are allies, so do not make me regret it','hi {you}. keep your guns pointed away from me'],chill:['hey ally! good to have you around','hi {you}, we got each other covered'],tryhard:['ally confirmed. coordinate on {enemyBase}'],friendly:['hi friend!','yay, allies!']},
+    enemy:{salty:['oh look, {you} wants to chat. cute','hi {you}. enjoy your bases while you have them','hello. goodbye. your base is next'],chill:['hey {you}, good luck out there','hi! may the best commander win'],tryhard:['{you}. glhf. no mercy','greetings. prepare your defenses'],friendly:['hi {you}! even enemies can be polite','hello! good luck, you will need it!']}},
+  how:{mate:{salty:['holding {bases} bases, no thanks to anyone','fine. would be better if {foe} stopped poking me'],chill:['doing ok! {bases} bases and {units} units','pretty good, how about you?'],tryhard:['{bases} bases, {units} units, {money} banked. stable'],friendly:['great now that you are here!']},
+    ally:{salty:['surviving. {foe} keeps hitting me','fine, thanks for asking i guess'],chill:['doing alright, {bases} bases right now','not bad, you?'],tryhard:['stable. pressure from {foe}'],friendly:['good! thanks for asking!']},
+    enemy:{salty:['better than you, clearly','why, worried?','great, now that i am winning'],chill:['doing fine, thanks. you?','pretty good, honestly'],tryhard:['irrelevant to you'],friendly:['good! you?']}},
+  threat:{mate:{salty:['save that energy for {foe}','wrong target, genius. i am on your team'],chill:['haha aim that at the enemy','easy, we are teammates!'],tryhard:['redirect that aggression to {enemyBase}'],friendly:['hey, we are friends!']},
+    ally:{salty:['threatening your ally? bold','careful, our deal can end real fast'],chill:['whoa, we are allies, remember?'],tryhard:['noted. our alliance is under review'],friendly:['that is not very ally-like!']},
+    enemy:{salty:['big talk from someone with {yourBases} bases','come try it. i will be at {base}','you and what army?','i have taken {killsOnYou} of your units already. keep talking'],chill:['haha we will see about that','bring it, should be fun','confident! i like it'],tryhard:['noted. reinforcing {base}','you will need more than words'],friendly:['eek! please go easy on me','we will see about that!']}},
+  insult:{mate:{salty:['wow, insulting your own team. classy','say that to {foe}, not me'],chill:['ouch, we are a team though','save it for the enemy, friend'],tryhard:['flaming your team loses games'],friendly:['aw, that hurt my feelings']},
+    ally:{salty:['nice way to treat an ally','keep talking and see what happens to our deal'],chill:['easy, we are on the same side'],tryhard:['unproductive'],friendly:['hey! be nice!']},
+    enemy:{salty:['says the one losing units to me','cope harder','imagine typing instead of defending','you have killed {yourKills} of mine and i have killed {killsOnYou} of yours. you were saying?'],chill:['oof, rude. gg anyway','haha ok','trash talk does not win wars, friend'],tryhard:['less chat, more APM','words do not capture bases'],friendly:['that is mean!','aw, why so grumpy?']}},
+  praise:{mate:{salty:['i know. you are not terrible either','took you long enough to notice'],chill:['thanks! you are doing great too','appreciate it, partner'],tryhard:['good work on your side too'],friendly:['yay! you too!']},
+    ally:{salty:['finally some respect'],chill:['thanks, ally!'],tryhard:['acknowledged'],friendly:['aww thanks!']},
+    enemy:{salty:['flattery will not save {yourBases} bases','nice try, still attacking you'],chill:['thanks! you are tough too','respect, honestly'],tryhard:['compliment noted. attack continues'],friendly:['thank you! you too!']}},
+  thanks:{mate:{salty:['yeah yeah, you owe me','whatever, just keep fighting'],chill:['anytime, partner','no problem at all'],tryhard:['np. stay focused'],friendly:['you are welcome!']},
+    ally:{salty:['do not get used to it'],chill:['happy to help'],tryhard:['np'],friendly:['anytime friend!']},
+    enemy:{salty:['for what? i am still coming for you'],chill:['uh, you are welcome?'],tryhard:['for what'],friendly:['you are welcome i guess!']}},
+  laugh:{mate:{salty:['what is so funny','glad someone is having fun'],chill:['haha','lmao same'],tryhard:['focus'],friendly:['hehe']},ally:{salty:['?'],chill:['haha'],tryhard:['focus'],friendly:['hehe']},
+    enemy:{salty:['laugh now. cry later','keep laughing, my tanks are rolling'],chill:['haha','lol'],tryhard:['not funny'],friendly:['hehe']}},
+  question:{mate:{salty:['yes, i can read you. unfortunately','what now'],chill:['loud and clear, {you}','yep, what is up?'],tryhard:['affirmative. go ahead'],friendly:['yes! i hear you!']},
+    ally:{salty:['yeah, what'],chill:['reading you, ally'],tryhard:['copy'],friendly:['yes!']},
+    enemy:{salty:['why would i answer you','maybe. what is it to you'],chill:['sure, what is up?'],tryhard:['not answering that'],friendly:['hmm? what is it?']}},
+  plan:{mate:{salty:['simple. you hit {enemyBase}, i will do the real work','plan is: do not die. then take {enemyBase}'],chill:['let us take {enemyBase} together, then push their silo','grab towns for money first, then hit {enemyBase}'],tryhard:['AA up, then scout their hideout with a drone and hit {enemyBase} with everything','secure income, then focus {enemyBase}. no splitting'],friendly:['let us go capture {enemyBase} together!']},
+    ally:{salty:['you handle {enemyBase}, i handle {foe}'],chill:['maybe we squeeze {foe} from both sides?'],tryhard:['coordinate on {enemyBase} in two minutes'],friendly:['let us team up on {enemyBase}!']},
+    enemy:{salty:['my plan is to beat you. that is it','like i would tell you'],chill:['secret plans, sorry'],tryhard:['classified'],friendly:['it is a surprise!']}},
+  where:{mate:{salty:['around {base}. come help instead of asking'],chill:['holding near {base}'],tryhard:['{base}. pushing out soon'],friendly:['at {base}! come visit!']},ally:{salty:['near {base}'],chill:['mostly at {base}'],tryhard:['{base}'],friendly:['{base}!']},
+    enemy:{salty:['nice try. find out yourself','closer than you think'],chill:['somewhere around {base}, haha'],tryhard:['not telling'],friendly:['hehe, secret']}},
+  winning:{any:{salty:['{lead}, for now','look at the map. {lead}'],chill:['looks like {lead} right now','{lead} is ahead, but it can flip fast'],tryhard:['{lead}. by bases'],friendly:['{lead} is doing great!']}},
+  name:{any:{salty:['{me}. remember it, you will see it on your kill feed'],chill:['i am {me}. nice to meet you, {you}'],tryhard:['{me}. ranked and dangerous'],friendly:['i am {me}! hi {you}!']}},
+  bot:{any:{salty:['bot? i have beaten humans twice your rank','says the one who types like a bot'],chill:['maybe, maybe not. does it matter?','beep boop. just kidding. or am i'],tryhard:['irrelevant. focus on the match'],friendly:['i am a friendly bot!']}},
+  joke:{any:{salty:['your base layout is the joke','i would tell you a joke but you are already playing'],chill:['why did the tank cross the road? it ran out of fuel halfway','what do you call a sleeping tank? a dozer'],tryhard:['jokes cost APM'],friendly:['what does an artillery shell say? see you later!']}},
+  sorry:{mate:{salty:['fine. forgiven. this time','you better be'],chill:['all good, it happens'],tryhard:['learn and move on'],friendly:['it is ok!']},ally:{salty:['hmph. ok'],chill:['no worries'],tryhard:['noted'],friendly:['aw it is fine!']},
+    enemy:{salty:['too late for sorry','apology not accepted. attack continues'],chill:['no hard feelings'],tryhard:['irrelevant'],friendly:['aw, it is ok!']}},
+  bye:{any:{salty:['finally','leaving already? figures'],chill:['see ya, gg','take care!'],tryhard:['noted'],friendly:['bye bye!']}},
+  def:{mate:{salty:['sure, partner. now go hit something','ok, and?','yeah yeah'],chill:['sounds good','right with you','got it'],tryhard:['copy','understood'],friendly:['ok!','yay!']},
+    ally:{salty:['sure','ok'],chill:['sounds good, ally'],tryhard:['copy'],friendly:['ok friend!']},
+    enemy:{salty:['did you need something','cool story','not now, busy taking your bases','whatever you say'],chill:['haha ok','sure thing'],tryhard:['irrelevant'],friendly:['ok!']}}};
+function lineFor(kind,rel,per){const K=LINES[kind]||LINES.def;const R=K.any||K[rel]||K.enemy;return R[per]||R.chill}
+// intent detection; several can match, the strongest wins
+const INT=[['yes',/^ *(yes|yeah|yea|yep|ya|sure|ok|okay|k|do it|deal|lets go|let s go|alright|fine|absolutely|of course)\b/],['no',/^ *(no|nah|nope|not now|never|no thanks|pass|maybe later)\b/],
+  ['money',/ (money|cash|funds|bucks|loan|spare|send me|give me) |\$\s?\d/],['order',/ (attack|push|hit|go to|capture|take|rush|send) /],['defend',/ (defend|protect|hold|guard|back me|help me|need help|help) /],
+  ['winning',/ (who is winning|whos winning|who s winning|are you winning|who is ahead) /],['name',/ (your name|who are you|what s your name|whats your name) /],['bot',/ (are you a bot|are you ai|you a bot|robot|are you real|are you human) /],
+  ['joke',/ (joke|funny|make me laugh) /],['how',/ (how are you|hows it going|how s it going|you ok|how you doing|how are things|status|how many) /],['where',/ (where are you|where is your|where s your|location) /],
+  ['plan',/ (what should|plan|strategy|what now|ideas|what do we do|what next) /],['sorry',/ (sorry|my bad|oops|apologies) /],['bye',/ (bye|gtg|got to go|leaving|cya|see ya) /],
+  ['threat',/ (going down|beat you|destroy you|crush|kill you|coming for|end you|wreck|you re dead|youre dead|gonna win|watch out|you re next|youre next) /],
+  ['insult',/ (noob|trash|bad|ez|loser|suck|garbage|cry|stupid|idiot|shut up|stfu) /],['praise',/ (nice|good job|well done|great|gj|gg wp|well played|respect) /],
+  ['thanks',/ (thanks|thank you|thx|ty) /],['laugh',/ (lol|lmao|haha|xd|rofl) /],['gg',/ (gg|good game) /],['teammate',/ (teammate|same team|my team|our team|we are team|ally|allies|partner) /],
+  ['peace',/ (peace|truce|ceasefire|stop attacking|leave me alone) /],['question',/\?\s*$| (can you|do you|are you|read me|copy) /],['hello',/ (hi|hello|hey|yo|sup|glhf|gl hf|good luck|howdy) /]];
+function detect(text){const t=' '+text.toLowerCase().replace(/[^a-z0-9$ ]/g,' ')+' ';const q=/\?\s*$/.test(text);for(const [k,re] of INT){if(k==='question'){if(q||re.test(t))return k;continue}if(re.test(k==='yes'||k==='no'?text.toLowerCase():t))return k}return 'def'}
+function sayAs(b,text,ch,delay){const n=String(text).length;setTimeout(()=>{if(!G||G.over&&!/gg/.test(text)||G.T[b].elim&&!/gg|out/.test(text))return;chatPost(b,text,ch)},(delay||0)+700+Math.min(2600,n*35)+Math.random()*600)}
+// ---------- the player talks ----------
+chatIncoming=function(team,text,ch){const kind=detect(text);const tl=' '+text.toLowerCase()+' ';
+  // who is being addressed: a named bot, the bot you were just talking with, or the channel
+  let bots=G.T.filter(o=>!o.human&&!o.elim);const named=bots.filter(b=>{const nm=b.name.toLowerCase().replace(/[^a-z0-9]/g,'');return nm.length>2&&tl.replace(/[^a-z0-9 ]/g,'').includes(' '+nm)||tl.includes(' '+(TEAMS[b.i].short||'').toLowerCase()+' ')});
+  const pend=Object.values(TK.pend).filter(p=>p.to===team&&G.t<p.until);
+  if((kind==='yes'||kind==='no')&&pend.length&&!named.length){chatPost(team,text,ch);const p=pend.sort((a,b)=>b.at-a.at)[0];delete TK.pend[p.b];resolvePending(p,kind==='yes');return}
+  if(['money','order','defend'].includes(kind)||!bots.length)return chatIncomingBase(team,text,ch);
+  chatPost(team,text,ch);
+  const recent=TK.last[team];let target;
+  if(named.length)target=named;
+  else if(recent&&G.t-recent.t<20&&recent.ch===ch&&['def','question','how','thanks','sorry','laugh','where','plan','praise'].includes(kind)&&!G.T[recent.b].elim&&(ch==='team'?ally(recent.b,team):true))target=[G.T[recent.b]];
+  else{const hostile=['threat','insult','peace'].includes(kind)&&ch!=='team';target=bots.filter(o=>ch==='team'?ally(o.i,team):hostile?!ally(o.i,team):true);if(!target.length)target=bots;target=target.sort(()=>Math.random()-.5).slice(0,['hello','gg','winning'].includes(kind)?2:1)}
+  target.forEach((b,i)=>replyFrom(b.i,team,kind,ch,text,i*1500))}
+function replyFrom(b,h,kind,ch,text,delay){const B=G.T[b],per=B.persona||'chill',rel=tkRel(b,h);TK.last[h]={b,t:G.t,ch};
+  const grudge=(typeof CHAT_MEM!=='undefined'?CHAT_MEM[b+'_'+h]||0:0);
+  if(kind==='insult'||kind==='threat'){if(typeof CHAT_MEM!=='undefined')CHAT_MEM[b+'_'+h]=grudge+1}
+  if(grudge>=2&&['hello','def','question','how'].includes(kind)&&per!=='friendly'){sayAs(b,pick(['still mad about earlier, {you}','oh, now you want to talk?','you were rude to me earlier. remember?','i have not forgotten what you said']).replace('{you}',tkName(h)),ch,delay);if(typeof CHAT_MEM!=='undefined')CHAT_MEM[b+'_'+h]--;return}
+  if(kind==='gg'){sayAs(b,pick(G.over?['gg wp','gg, fun match','gg everyone']:rel==='enemy'?['gg? the game is not over yet','calling gg early? confident','gg when i take {base}, maybe'].map(s=>fill(s,tkSlots(b,h))):['gg, but let us finish them first','not over yet, partner']),ch,delay);return}
+  if(kind==='teammate'){sayAs(b,voice(per,rel==='enemy'?pick(['we are not on the same team. check the colors','no, i am the one shooting you','teammates? not today']):pick(['yes, same side. i have your back','teammates, yeah. now let us win this','we sure are. stick close'])),ch,delay);return}
+  if(kind==='peace'){if(rel!=='enemy'){sayAs(b,voice(per,'we already are on good terms'),ch,delay);return}
+    if(G.ranked){sayAs(b,pick(['ranked match. no deals','no truces in ranked, sorry']),ch,delay);return}
+    const r=typeof dipCmd==='function'?dipCmd(h,{a:'truce',to:b,amt:0}):'no';if(r!=='ok')sayAs(b,voice(per,'not right now'),ch,delay);return}
+  const L=lineFor(kind,rel,per);const line=fresh(L,b);
+  sayAs(b,voice(per,fill(line,tkSlots(b,h))),ch,delay);
+  // keep the conversation going: sometimes a follow-up question that understands yes/no answers
+  if(Math.random()<.35)setTimeout(()=>followUp(b,h,ch),2500+Math.random()*2500)}
+function followUp(b,h,ch){if(!G||G.over||G.T[b].elim||TK.pend[b])return;const B=G.T[b],per=B.persona||'chill',rel=tkRel(b,h);
+  const enB=G.Z.filter(z=>!ally(z.owner,b)&&!ally(z.owner,h)&&z.owner>=0&&(!z.hidden||z.rev[b])).sort((a,c)=>c.structs.length-a.structs.length)[0];
+  if(rel!=='enemy'&&enB){TK.pend[b]={b,to:h,kind:'push',z:enB.id,until:G.t+40,at:G.t};sayAs(b,voice(per,fill(pick(['want to hit {target} with me? yes or no','i am thinking {target} next. you in?','push {target} together?']),{target:enB.name})),ally(b,h)?'team':ch);return}
+  if(rel==='enemy'&&!G.ranked&&per!=='salty'&&Math.random()<.4){TK.pend[b]={b,to:h,kind:'truce',until:G.t+40,at:G.t};sayAs(b,voice(per,pick(['want to call a truce for a few minutes?','truce for now? we both have bigger problems','how about we stop shooting each other for a bit?'])),ch);return}
+  if(rel==='enemy'&&per==='salty'){sayAs(b,pick(['anyway, enjoy {base} while it lasts','anyway. see you soon','anyway, i have tanks to send your way']).replace('{base}',(tkNear(h)||{name:'your base'}).name),ch)}}
+function resolvePending(p,yes){const b=p.b,h=p.to,per=G.T[b].persona||'chill';const ch=ally(b,h)?'team':'all';
+  if(p.kind==='push'){const z=G.Z.find(q=>q.id===p.z);if(yes&&z){G.T[b].A.focus=z.id;G.T[b].A.push=0;sayAs(b,voice(per,pick(['moving on '+z.name+' now','great. sending everything at '+z.name,'see you at '+z.name])),ch)}else sayAs(b,voice(per,pick(['ok, maybe later','fine, i will find another target','your call'])),ch);return}
+  if(p.kind==='truce'){if(yes&&typeof dipCmd==='function'&&!G.ranked){if(typeof setTruce==='function'){setTruce(b,h,180);addRep&&addRep(b,h,6)}sayAs(b,voice(per,pick(['deal. three minutes of peace','good. truce it is'])),ch)}else sayAs(b,voice(per,pick(['your loss','fine, back to war then'])),ch);return}
+  if(p.kind==='help'){const z=G.Z.find(q=>q.id===p.z);sayAs(b,voice(per,yes?pick(['thank you! hurry','you are a lifesaver','owe you one']):pick(['wow. ok. remember this','fine, i will hold alone'])),ch);if(yes&&typeof addRep==='function')addRep(b,h,4)}}
+// ---------- the battlefield gives bots things to talk about ----------
+function talkEvent(e){if(!G||!G.T||NET.role==='client')return;
+  if(e.e==='die'&&e.u){const v=e.u.team,by=e.u.lastBy;if(by>=0&&by!==v)TK.dmg[by+'>'+v]=(TK.dmg[by+'>'+v]||0)+1}
+  if(e.e==='capture'&&e.old>=0&&e.t>=0){TK.log.push({k:'cap',t:e.t,old:e.old,z:e.z,at:G.t});if(TK.log.length>40)TK.log.shift()}}
+function talkTick(){if(!G||!started||G.phase!=='war'||NET.role==='client'||G.t<TK.nextPro)return;TK.nextPro=G.t+rnd(14,26);
+  const hum=G.T.filter(T=>T.human&&!T.elim);if(!hum.length)return;const h=pick(hum).i;const ev=TK.log.filter(x=>G.t-x.at<40);
+  // 1. someone took a base: from the player, or the player took one of theirs
+  for(const x of ev.reverse()){if(x.used)continue;
+    if(x.old===h&&!G.T[x.t].human){x.used=1;const per=G.T[x.t].persona;sayAs(x.t,voice(per,fill(pick({salty:['{target} is mine now, {you}. thanks for the gift','that was easy. who is next?','your {target} looked better with my flag on it'],chill:['sorry {you}, needed {target}','got {target}! good fight though'],tryhard:['{target} secured. next objective: your HQ'],friendly:['oops, took {target}! sorry!']}[per]||['took {target}']),{you:tkName(h),target:x.z.name})),'all');return}
+    if(x.t===h&&!G.T[x.old].human){x.used=1;const per=G.T[x.old].persona;sayAs(x.old,voice(per,fill(pick({salty:['ok {you}, that was lag. i want {target} back','enjoy {target}. i am coming for it','that was lucky and you know it'],chill:['nice move on {target}, {you}','well played, {target} was a good grab'],tryhard:['losing {target} was a mistake. adapting'],friendly:['aw, you got {target}! nice!']}[per]||['you took {target}']),{you:tkName(h),target:x.z.name})),'all');return}
+    if(ally(x.t,h)&&!G.T[x.t].human&&x.t!==h){x.used=1;sayAs(x.t,voice(G.T[x.t].persona,'took '+x.z.name+' from '+tkName(x.old)+'. pressure is on'),'team');return}}
+  // 2. an AI ally is under attack and asks the player for help
+  for(const T of G.T){if(T.human||T.elim||!ally(T.i,h)||TK.pend[T.i])continue;const z=tkBases(T.i).find(q=>q.threat&&q.threat[T.i]>=4);if(z&&Math.random()<.6){const per=T.persona;TK.pend[T.i]={b:T.i,to:h,kind:'help',z:z.id,until:G.t+40,at:G.t};
+    sayAs(T.i,voice(per,pick(['{target} is under attack! can you send help?','they are hitting {target} hard. help me out?','need backup at {target}, can you come?']).replace('{target}',z.name)),'team');return}}
+  // 3. bots talk to each other, sometimes
+  const ais=G.T.filter(T=>!T.human&&!T.elim);if(ais.length>=2&&Math.random()<.22&&G.t-(TK.banter||0)>60){TK.banter=G.t;const a=pick(ais),o=pick(ais.filter(x=>x!==a));if(!o)return;const rel=ally(a.i,o.i);const v={o:o.name,a:a.name,ob:(tkNear(o.i)||{name:'your base'}).name,ab:(tkNear(a.i)||{name:'my base'}).name};
+    sayAs(a.i,voice(a.persona,fill(fresh(rel?['{o}, cover my flank near {ab}','{o}, nice work so far','{o}, push with me in a minute','{o}, how are you holding up?','{o}, i could use some AA near {ab}','{o}, watch your back, they are massing tanks']:['{o}, your bases look tasty','hey {o}, {ob} is next','{o}, stay out of my valley','{o}, i saw what you did to my outpost','nice defenses at {ob}, {o}. shame if something happened to them','{o}, you are playing like a recruit'],a.i),v)),rel?'team':'all');
+    setTimeout(()=>{if(!o.elim)sayAs(o.i,voice(o.persona,fill(fresh(rel?['on it','got you','ok, moving','holding fine, thanks','sending AA your way','copy that']:['come try it, {a}','big words, {a}','lol, sure','{ab} is not looking so safe either, {a}','you first, {a}','keep dreaming, {a}'],o.i),v)),rel?'team':'all')},2600);return}
+  // 4. an enemy who has hurt the player a lot rubs it in, or one hurt by the player complains
+  const foes=G.T.filter(T=>!T.human&&!T.elim&&!ally(T.i,h));for(const T of foes){const a=TK.dmg[T.i+'>'+h]||0,b2=TK.dmg[h+'>'+T.i]||0;
+    if(a>15&&a>b2*1.5&&Math.random()<.4){sayAs(T.i,voice(T.persona,pick(['that is '+a+' of your units so far, '+tkName(h)+'. want to keep count?','your army keeps walking into my guns','still want that fight, '+tkName(h)+'?'])),'all');return}
+    if(b2>15&&b2>a*1.5&&Math.random()<.4){sayAs(T.i,voice(T.persona,pick(['ok '+tkName(h)+', you can stop hunting my units now','why are you only attacking me?','go pick on someone else, '+tkName(h)])),'all');return}}}
+
 // ================= UI =================
 const $=id=>document.getElementById(id);
 let started=false;
@@ -3907,7 +4040,7 @@ async function boot(){
   if(kind==='client'||kind==='resume'||kind==='ranked')deployGame(G.diff,kind);
   renderStartProfile();if(!kind&&!P_().introSeen&&!SAVE.lsGet('introSeen'))setTimeout(()=>{if(!started&&!P_().introSeen)showIntro(0)},600);
   netInit().then(async()=>{if(NET.autoHost){const a=NET.autoHost;document.querySelector('#tabs button[data-tab="mp"]').click();UIS.mmode=a.mode;hostMatch(a.mode,a.diff);return}if(kind)return;const s=await SAVE.loadSave();if(s){$('resumeRow').hidden=false;$('resumeInfo').textContent='Saved '+new Date(s.savedAt).toLocaleString()+', '+mmss(s.t)+' in'}});
-  window.addEventListener('pagehide',()=>{awardOnLeave();SAVE.saveGame()});setInterval(()=>{trainTick();if(!started||!$('tabMp').hidden){renderFriends();friendPing(false)}},700);document.addEventListener('visibilitychange',()=>{if(document.hidden)SAVE.saveGame()});
+  window.addEventListener('pagehide',()=>{awardOnLeave();SAVE.saveGame()});setInterval(()=>{try{talkTick()}catch(e){}},1000);setInterval(()=>{trainTick();if(!started||!$('tabMp').hidden){renderFriends();friendPing(false)}},700);document.addEventListener('visibilitychange',()=>{if(document.hidden)SAVE.saveGame()});
   let last=performance.now(),acc=0,saveT=60;
   const loop=now=>{requestAnimationFrame(loop);let dt=Math.min(.1,(now-last)/1000);last=now;RT+=dt;
     if(started&&NET.role==='client'){clientTick(dt)}
