@@ -1,0 +1,15 @@
+{
+ "version": "3.6.1",
+ "notes": [
+  "Build menu: locked buildings (C-RAM, interceptor drones, field hospital, workshop, oil) now show as locked",
+  "Badge shine now stays inside the rank badge",
+  "Locked items are greyed out with a Locked tag",
+  "The introduction closes for good once finished",
+  "New Iron Horizon launcher with one-click updates"
+ ],
+ "files": [
+  "index.html",
+  "three.min.js",
+  "peerjs.min.js"
+ ]
+}
