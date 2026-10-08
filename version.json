@@ -1,11 +1,14 @@
 {
- "version": "3.8",
+ "version": "3.9",
  "notes": [
-  "Ranked rework: win to earn 1 point per kill (up to 400), 25 per capture, 3 per building and 150 for the win",
-  "Losing or leaving ranked earns nothing and costs 50 to 400 points depending on your rank; bots follow the same rules",
-  "Advanced Vocab V2: bots build their trash talk and callouts on the fly and react to camping, missing, sweating and feeding",
-  "Teammates no longer argue with what you type in all chat",
-  "New Settings option: Bot language Uncensored or Clean"
+  "New missile: MIRV (I) splits into six heavy warheads over the target",
+  "New missile: SEAD (G) hunts enemy AA, C-RAM, interceptor sites and radar and knocks them out",
+  "New helicopter: Heavy gunship with long-range anti-tank rockets (level 24)",
+  "Wall snapping: walls join the ends of other walls, keep 15 degree angles and 10 m lengths. Shift chains, Alt places freely",
+  "Destroyed walls clear away after one minute",
+  "Ranked wins now give 250 points for the win",
+  "Higher-ranked bots are stronger: better economy, production and battle cards",
+  "Arguing with a bot escalates instead of repeating, and it mutes you if you keep going"
  ],
  "files": [
   "index.html",

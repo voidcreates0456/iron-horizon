@@ -395,7 +395,7 @@ body.pre #top,body.pre #rail,body.pre #mini,body.pre #feed,body.pre #labels,body
       <div class="lh">Unlocks</div><div id="unlocks"></div></div>
     <div id="tabMp" hidden><div class="netrow"><span class="netstat" id="netStat">Connecting</span></div><div id="lobby"></div><div id="friendsBox"></div></div>
     <div class="prof" id="prof"></div>
-    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 3.8 (ranked rework, Advanced Vocab V2)</div>
+    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 3.9 (MIRV, SEAD, gunship, wall snapping)</div>
     <div class="keys">
       <div><b>Left click or drag</b> select units</div><div><b>Right click</b> move or attack</div>
       <div><b>WASD or arrows</b> move camera</div><div><b>Wheel</b> zoom, <b>Q E</b> rotate, <b>R T</b> tilt</div>
@@ -477,6 +477,7 @@ const WP={
   howitzer:{rng:430,min:70,dmg:170,rof:6.5,cls:'he',air:0,fx:'arty',splash:20,snd:'howitzer',spread:16},
   mlrs:{rng:540,min:110,dmg:95,rof:13,salvo:8,cls:'he',air:0,fx:'artyRocket',splash:15,snd:'mlrs',spread:34},
   flak:{rng:160,dmg:32,rof:.24,cls:'flak',air:1,ground:0,intercept:.09,fx:'flak',snd:'flak',acc:.8},
+  gsRockets:{rng:160,dmg:150,rof:1.5,cls:'at',air:0,fx:'rocket',spd:150,splash:8,snd:'rpg'},
   heliRockets:{rng:115,dmg:90,rof:1.7,cls:'at',air:0,fx:'rocket',spd:140,splash:6,snd:'rpg'},
   pistol:{rng:40,dmg:6,rof:1.1,cls:'bullet',air:0,fx:'tracer',snd:'rifle',acc:.55},
   heliGun:{rng:90,dmg:14,rof:.18,cls:'auto',air:1,fx:'tracer',snd:'auto',acc:.6},
@@ -504,6 +505,8 @@ const UT={
     good:'Area saturation at long range',bad:'Anything up close, aircraft'},
   spaa:{name:'Anti-air vehicle',cat:'veh',cost:520,time:11,hp:380,spd:11,armor:'light',w:'flak',sight:200,r:5,turn:1.8,
     good:'Helicopters, drones, incoming missiles',bad:'All ground targets'},
+  gunship:{name:'Heavy gunship',cat:'air',cost:1450,time:22,hp:980,spd:19,armor:'air',w:'gsRockets',w2:'heliGun',sight:200,alt:44,r:9,
+    good:'Tanks, armor columns, bases',bad:'AA batteries, anti-air vehicles, C-RAM'},
   heli:{name:'Attack helicopter',cat:'air',cost:950,time:16,hp:540,spd:24,armor:'air',w:'heliRockets',w2:'heliGun',sight:180,alt:38,r:7,
     good:'Tanks and vehicles',bad:'Anti-air, rocket troopers'},
   engineer:{name:'Combat engineer',cat:'inf',cost:160,time:6,hp:65,spd:6.8,armor:'inf',w:'pistol',sight:110,cap:1,r:1.6,repair:1,
@@ -549,6 +552,10 @@ const SP={
     desc:'Arrives in seconds at Mach 8. Almost impossible to intercept.'},
   cluster:{name:'Cluster missile',ln:'cluster missile',key:'K',cost:1300,cd:50,needs:'silo',r:115,dmg:280,n:16,apex:420,cep:20,ik:.85,drift:.12,
     desc:'Bursts overhead and scatters 16 bomblets across a wide area. Great against troops.'},
+  mirv:{name:'MIRV',ln:'MIRV',key:'I',cost:2600,cd:110,needs:'silo',r:85,dmg:1100,n:6,apex:900,cep:25,ik:.7,drift:.1,
+    desc:'Splits high above the target into six heavy warheads that hit across a wide area. Hard to intercept all of them.'},
+  sead:{name:'SEAD missile',ln:'SEAD missile',key:'G',cost:900,cd:35,needs:'silo',r:30,dmg:1500,apex:300,cep:3,ik:.6,drift:.03,cls:'bust',seek:450,
+    desc:'Hunts the nearest enemy AA battery, C-RAM, interceptor site or radar within 450 m of where you aim, and knocks its electronics out for 15 seconds.'},
   buster:{name:'Bunker buster',ln:'bunker buster',key:'L',cost:1000,cd:40,needs:'silo',r:28,dmg:2400,apex:520,cep:4,ik:.9,drift:.05,cls:'bust',
     desc:'Pinpoint warhead that wrecks a single building in one hit.'},
   emp:{name:'EMP missile',ln:'EMP missile',key:'U',cost:1400,cd:70,needs:'silo',r:170,dmg:0,apex:600,cep:15,ik:.7,drift:.1,emp:22,
@@ -566,9 +573,10 @@ const UNIT_CAP=100,HUMAN_CAP=150,HELI_CAP=12;
 // per-army modifiers from skills (lobby) and battle cards (this match only)
 const MOD0={inc:1,build:1,dup:0,fast:0,dmg:{},shp:1,reload:1,cap:1,hp:1,rep:1};
 function MODS(t){const T=G&&G.T&&G.T[t];return T&&T.mods||MOD0}
+const isHeli=t=>t==='heli'||t==='gunship';
 const capOf=t=>G&&G.T[t]&&G.T[t].human?HUMAN_CAP:UNIT_CAP;
 const WALLS=['wall','barrier','hedgehog'];const isWall=t=>t==='wall'||t==='barrier'||t==='hedgehog';
-const MISSILES=['tac','cruise','icbm','hyper','cluster','buster','emp','thermo'];
+const MISSILES=['tac','cruise','icbm','hyper','cluster','buster','emp','thermo','mirv','sead'];
 function missileTf(k,d){const sp=SP[k];return sp.tf?sp.tf(d):k==='icbm'?16+d/300:k==='cruise'?6+d/110:5+d/340}
 function missileDrift(k){const sp=SP[k];return sp.drift!==undefined?sp.drift:k==='icbm'?.5:k==='tac'?.14:0}
 
@@ -1107,6 +1115,7 @@ function unitModel(t,team){const key=t+team;if(UMOD[key])return UMOD[key];const 
     top=merge([P(GEO.box,b,0,.7,0,0,0,0,2.8,1.4,2.6),P(GEO.cyl8,0x33362d,1.9,1.5,.95,0,0,-PI/2+.5,.1,3,.1),P(GEO.cyl8,0x33362d,1.9,1.5,-.95,0,0,-PI/2+.5,.1,3,.1),
       P(GEO.box,0x2e3129,0,1.25,.95,0,0,0,1,.5,.35),P(GEO.box,0x2e3129,0,1.25,-.95,0,0,0,1,.5,.35),P(GEO.cyl6,0x555a4c,-1.2,2.1,0,0,0,0,.08,1.4,.08),P(GEO.box,tc,0,1.42,0,0,0,0,2.82,.06,2.62)]);
     top2=merge([P(GEO.cyl16,0xb8bcb0,0,0,0,0,0,PI/2,.95,.12,.95)]);topY=2.0}
+  else if(t==='gunship'){const M=unitModel('heli',team);body=M.body;top=M.top;topY=M.topY}
   else if(t==='heli'){const b=tint(0x3f4537,team,.15),gl=0x1b2228;
     body=merge([P(GEO.box,b,0,0,0,0,0,0,6,1.7,1.4),P(GEO.cone12,b,3.6,-.2,0,0,0,-PI/2,.85,1.6,.75),P(GEO.box,gl,2.5,.75,0,0,0,-.35,1.4,.7,1.1),P(GEO.box,gl,1.1,.95,0,0,0,-.3,1.4,.6,1.15),
       P(GEO.taper,b,-6,.35,0,0,0,PI/2,.5,7,.5),P(GEO.box,b,-9.3,1.5,0,0,0,-.35,1.2,2.6,.18),P(GEO.box,b,-8.6,.4,0,0,0,0,.9,.1,3.2),
@@ -1223,9 +1232,9 @@ const REN={units:new Map(),structs:new Map(),deaths:[],wrecks:[],flags:[],selRin
 function makeUnitMesh(u){const M=unitModel(u.t,u.team);const g=new THREE.Group();const b=new THREE.Mesh(M.body,unitMat);const inf=UT[u.t].cat==='inf';
   b.castShadow=!inf;b.receiveShadow=!inf;g.add(b);g.userData.body=b;
   if(M.top){const t=new THREE.Mesh(M.top,unitMat);t.position.set(M.topX,M.topY,0);t.castShadow=true;g.add(t);g.userData.top=t;
-    if(u.t==='heli'){const disc=new THREE.Mesh(new THREE.CircleGeometry(7.4,32),new THREE.MeshBasicMaterial({color:0x1e1f1c,transparent:true,opacity:.14,depthWrite:false,side:THREE.DoubleSide}));disc.rotation.x=-PI/2;disc.position.y=M.topY;g.add(disc)}
+    if(isHeli(u.t)){const disc=new THREE.Mesh(new THREE.CircleGeometry(7.4,32),new THREE.MeshBasicMaterial({color:0x1e1f1c,transparent:true,opacity:.14,depthWrite:false,side:THREE.DoubleSide}));disc.rotation.x=-PI/2;disc.position.y=M.topY;g.add(disc)}
     if(M.top2){const t2=new THREE.Mesh(M.top2,unitMat);t2.position.set(-1.2,1.8,0);t.add(t2);g.userData.top2=t2}}
-  if(inf)g.scale.setScalar(1.7);else if(u.t==='heavy'){g.scale.setScalar(1.45);g.userData.body.material=heavyMat()}else if(UT[u.t].cat==='veh')g.scale.setScalar(1.15);else if(u.t==='heli')g.scale.setScalar(1.1);else g.scale.setScalar(1.3);
+  if(inf)g.scale.setScalar(1.7);else if(u.t==='heavy'){g.scale.setScalar(1.45);g.userData.body.material=heavyMat()}else if(u.t==='gunship'){g.scale.setScalar(1.4);g.userData.body.material=heavyMat()}else if(UT[u.t].cat==='veh')g.scale.setScalar(1.15);else if(u.t==='heli')g.scale.setScalar(1.1);else g.scale.setScalar(1.3);
   scene.add(g);REN.units.set(u,g);return g}
 function makeStructMesh(s){let g;
   if(s.t==='civ')g=civMesh(s);
@@ -1248,10 +1257,10 @@ function syncEntities(dt,rt){
       const t=g.userData.top;if(t)t.rotation.y=-(u.tAng-u.ang);if(g.userData.top2)g.userData.top2.rotation.y+=dt*3;
       if(u.recoil&&t){u.recoil=Math.max(0,u.recoil-dt*3);t.position.x=(UMOD[u.t+u.team].topX||0)-u.recoil*.7}}
     else{const sp=Math.hypot(u.vx,u.vz);g.rotation.set(Math.sin(rt*.8+u.id)*.03,-u.ang,-clamp(sp/d.spd,0,1)*.16,'YXZ');g.position.y+=Math.sin(rt*1.3+u.id)*.5;
-      const t=g.userData.top;if(t){if(u.t==='heli')t.rotation.y+=dt*28;else t.rotation.x+=dt*40}}
+      const t=g.userData.top;if(t){if(isHeli(u.t))t.rotation.y+=dt*28;else t.rotation.x+=dt*40}}
     if(u.emp&&u.emp>G.t&&Math.random()<dt*8)glow(u.x+rnd(-2,2),u.y+rnd(1,4),u.z+rnd(-2,2),rnd(-3,3),rnd(1,4),rnd(-3,3),.3,.8,.8,3,1);
     if(d.cat==='veh'&&u.moving&&Math.random()<dt*(QUAL.lvl>1?4:10)){const ca=Math.cos(u.ang),sa=Math.sin(u.ang);smoke(u.x-ca*4,u.y+.6,u.z-sa*4,-ca*2+rnd(-1,1),rnd(.5,1.5),-sa*2+rnd(-1,1),rnd(2,4),1.5,6,.6,.54,.43,.32)}
-    if(u.t==='heli'&&u.y-hAt(u.x,u.z)<55&&Math.random()<dt*6){const a=rnd(0,TAU),gh=hAt(u.x,u.z);smoke(u.x+Math.cos(a)*6,gh+.5,u.z+Math.sin(a)*6,Math.cos(a)*12,1,Math.sin(a)*12,rnd(1.5,2.5),2,7,.62,.57,.46,.3)}
+    if(isHeli(u.t)&&u.y-hAt(u.x,u.z)<55&&Math.random()<dt*6){const a=rnd(0,TAU),gh=hAt(u.x,u.z);smoke(u.x+Math.cos(a)*6,gh+.5,u.z+Math.sin(a)*6,Math.cos(a)*12,1,Math.sin(a)*12,rnd(1.5,2.5),2,7,.62,.57,.46,.3)}
     if(u.hp<u.max*.4&&d.cat!=='inf'&&Math.random()<dt*(u.hp<u.max*.2?14:6))smoke(u.x+rnd(-1,1),u.y+3,u.z+rnd(-1,1),G.wind.x*.3,4,G.wind.z*.3,rnd(3,6),2,9,.13,.12,.11,.55)}
   for(const [u,g] of REN.units)if(u.dead&&!g.userData.dying)unitDeath(u,g);
   for(const s of G.s){if(s.dead)continue;let g=REN.structs.get(s);if(!g)g=makeStructMesh(s);const vis=canSee(ME,s);g.visible=vis;if(!vis)continue;const t=g.userData.top;
@@ -1262,7 +1271,7 @@ function syncEntities(dt,rt){
     if(t){if(s.t==='radar')t.rotation.y+=dt*1.6;else if(s.t==='oil'){if(!s.con)t.rotation.z=Math.sin(rt*1.8+s.id)*.32}else t.rotation.y=-(s.tAng-s.a)}
     if(s.t!=='civ'&&s.hp<s.max*.55&&Math.random()<dt*(s.hp<s.max*.25?10:4)){smoke(s.x+rnd(-s.w,s.w)*.35,s.y+s.h,s.z+rnd(-s.d,s.d)*.35,G.wind.x*.3,5,G.wind.z*.3,rnd(6,10),4,16,.12,.11,.1,.6);
       if(s.hp<s.max*.25&&Math.random()<.5)glow(s.x+rnd(-3,3),s.y+s.h*.8,s.z+rnd(-3,3),0,6,0,rnd(.5,1),3,6,0,.9)}}
-  for(const s of G.s)if(s.rubble)s.rubble.visible=canSee(ME,s);
+  for(const s of G.s)if(s.rubble){if(s.goneAt&&G.t>s.goneAt){scene.remove(s.rubble);s.rubble=null}else s.rubble.visible=canSee(ME,s)}
   for(let i=REN.deaths.length-1;i>=0;i--){const d=REN.deaths[i];d.t+=dt;const g=d.g;
     if(d.kind==='inf'){if(d.t<.6)g.rotation.x=(d.t/.6)*PI/2*d.dir;if(d.t>18)g.position.y-=dt*.4;if(d.t>22){scene.remove(g);REN.deaths.splice(i,1)}}
     else if(d.kind==='air'){d.vy-=25*dt;g.position.x+=d.vx*dt;g.position.z+=d.vz*dt;g.position.y+=d.vy*dt;g.rotation.y+=dt*4;
@@ -1287,7 +1296,7 @@ let _hm=null;function heavyMat(){if(!_hm){_hm=unitMat.clone();_hm.color=new THRE
 function addWreck(u,x,z,ang,tAng){const M=unitModel(u.t,u.team);const g=new THREE.Group();const b=new THREE.Mesh(M.body,wreckMat);b.castShadow=true;g.add(b);
   g.position.set(x,hAt(x,z),z);g.rotation.y=-ang;g.scale.setScalar(UT[u.t].cat==='air'?1.2:1.15);scene.add(g);REN.wrecks.push({g,t:0});
   while(REN.wrecks.length>(QUAL.lvl>1?40:80)){const w=REN.wrecks.shift();scene.remove(w.g)}
-  if(M.top&&u.t!=='heli'&&u.t!=='drone'){const tg=new THREE.Group();const tm=new THREE.Mesh(M.top,wreckMat);tm.castShadow=true;tg.add(tm);tg.scale.setScalar(1.15);tg.position.set(x,hAt(x,z)+M.topY*1.15,z);tg.rotation.y=-(tAng===undefined?ang:tAng);
+  if(M.top&&!isHeli(u.t)&&u.t!=='drone'){const tg=new THREE.Group();const tm=new THREE.Mesh(M.top,wreckMat);tm.castShadow=true;tg.add(tm);tg.scale.setScalar(1.15);tg.position.set(x,hAt(x,z)+M.topY*1.15,z);tg.rotation.y=-(tAng===undefined?ang:tAng);
     if(u.t==='tank'&&Math.random()<.65)REN.flying.push({g:tg,vx:rnd(-6,6),vy:rnd(16,26),vz:rnd(-6,6),rx:rnd(-3,3),rz:rnd(-3,3)});else REN.wrecks.push({g:tg,t:0});scene.add(tg)}
   addEmitter(x,hAt(x,z)+2,z,rnd(30,55),UT[u.t].cat==='air'?1.3:1.1)}
 function collapseStruct(s){const g=REN.structs.get(s);if(!g)return;REN.structs.delete(s);
@@ -1715,7 +1724,7 @@ function update(dt){
   G.q4+=dt;if(G.q4>=.25){capture(G.q4);G.q4=0}
   G.sec+=dt;if(G.sec>=1){G.sec-=1;economy();if(typeof giftTick==='function')giftTick();reconTick();updateHave();checkEnd()}
   if(typeof aiTick==='function')aiTick(dt);
-  if(G.tick%30===0){G.u=G.u.filter(u=>!u.dead);G.s=G.s.filter(s=>!s.dead||s.keep);}
+  if(G.tick%30===0){G.u=G.u.filter(u=>!u.dead);G.s=G.s.filter(s=>!s.dead||(s.keep&&!(s.goneAt&&G.t>s.goneAt+2)));}
   G.p=G.p.filter(p=>!p.dead);G.m=G.m.filter(m=>!m.dead);G.jets=G.jets.filter(j=>!j.dead);G.ix=G.ix.filter(i=>!i.dead);
 }
 
@@ -1780,7 +1789,7 @@ function moveUnit(u,mx,mz,dt){
       const f=Math.max(0,Math.cos(df));u.vx=Math.cos(u.ang)*spd*f;u.vz=Math.sin(u.ang)*spd*f}
     else{u.vx=lerp(u.vx,dx*spd,.25);u.vz=lerp(u.vz,dz*spd,.25);if(!u.air||Math.hypot(u.vx,u.vz)>2)u.ang=Math.atan2(u.vz,u.vx)}
     u.moving=true}
-  else{u.vx*=.8;u.vz*=.8;if(u.air&&u.t==='heli'){u.vx+=Math.cos(G.t*.7+u.id)*.3*dt;}}
+  else{u.vx*=.8;u.vz*=.8;if(u.air&&isHeli(u.t)){u.vx+=Math.cos(G.t*.7+u.id)*.3*dt;}}
   u.x=clamp(u.x+(u.vx+u.kx)*dt,-(HALF-40),HALF-40);u.z=clamp(u.z+(u.vz+u.kz)*dt,-(HALF-40),HALF-40);u.kx*=.9;u.kz*=.9;
   const gh=hAt(u.x,u.z);
   if(u.air){let alt=d.alt;if(u.t==='drone'&&!u.moving){u.ang+=dt*.25;}u.y=lerp(u.y,gh+alt,Math.min(1,dt*1.5))}else u.y=gh;
@@ -1871,7 +1880,7 @@ const LOSS_MSG={hq:'HQ destroyed. Income drops 40% and production slows until yo
   barracks:'Barracks destroyed.',factory:'War factory destroyed.',helipad:'Helipad destroyed.',
   refinery:'Fuel depot destroyed. Income reduced.',aa:'AA battery destroyed. Air defense weakened.',radar:'Radar station destroyed.',
   silo:'Missile silo destroyed.',bunker:'Bunker destroyed.',depot:'Supply cache destroyed.'};
-function killStruct(s,by){s.dead=true;if(s.team>=0&&typeof dipHarm==='function')dipHarm(s.team,by,ST[s.t].value/120);s.keep=true;emit({e:'collapse',s,x:s.x,y:s.y,z:s.z});
+function killStruct(s,by){s.dead=true;if(isWall(s.t))s.goneAt=G.t+60;if(s.team>=0&&typeof dipHarm==='function')dipHarm(s.team,by,ST[s.t].value/120);s.keep=true;emit({e:'collapse',s,x:s.x,y:s.y,z:s.z});
   if(G.sel.indexOf(s)>=0)G.sel.splice(G.sel.indexOf(s),1);
   if(s.t==='civ')return;
   const T=G.T[s.team],v=ST[s.t].value;T.st.lostS++;T.st.lostSV+=v;
@@ -1923,7 +1932,7 @@ function spawnFromBuilding(t,team,b){
 function queueUnit(team,t){const T=G.T[team],d=UT[t];if(T.elim)return 'Eliminated';if(!unlocked(team,t))return lockMsg(t);
   if(T.money<d.cost)return 'Not enough funds';if(T.q[d.cat].length>=8)return 'Queue is full';
   if(!hasStruct(team,CATS[d.cat].bld))return 'Needs a '+ST[CATS[d.cat].bld].name.toLowerCase();
-  if(t==='heli'){let n=T.q.air.filter(q=>q.t==='heli').length;for(const u of G.u)if(!u.dead&&u.team===team&&u.t==='heli')n++;if(n>=HELI_CAP)return 'Helicopter limit reached ('+HELI_CAP+')'}
+  if(isHeli(t)){let n=T.q.air.filter(q=>isHeli(q.t)).length;for(const u of G.u)if(!u.dead&&u.team===team&&isHeli(u.t))n++;if(n>=HELI_CAP)return 'Helicopter limit reached ('+HELI_CAP+')'}
   T.money-=d.cost;T.q[d.cat].push({t,left:d.time,tot:d.time});return 'ok'}
 function cancelQueue(team,cat,i){const T=G.T[team],it=T.q[cat][i];if(!it)return;T.money+=UT[it.t].cost;T.q[cat].splice(i,1)}
 
@@ -1989,7 +1998,8 @@ function strikeReady(team,k){const T=G.T[team],sp=SP[k];if(!unlocked(team,k))ret
   if(!hasStruct(team,sp.needs))return 'Needs a '+ST[sp.needs].name.toLowerCase();
   if(T.cd[k]>0)return 'Reloading '+Math.ceil(T.cd[k])+'s';
   if(T.money<sp.cost)return 'Not enough funds';return 'ok'}
-function launchStrike(team,k,tx,tz){const r=strikeReady(team,k);if(r!=='ok')return r;
+function launchStrike(team,k,tx,tz){if(k==='sead'){let best=null,bd=SP.sead.seek*SP.sead.seek;for(const o of G.s){if(o.dead||o.team<0||ally(o.team,team)||!['aa','cram','idrone','radar'].includes(o.t))continue;const d=d2(o.x,o.z,tx,tz);if(d<bd){bd=d;best=o}}
+    if(!best)return 'No enemy air defense within 450 m of that spot';tx=best.x;tz=best.z}const r=strikeReady(team,k);if(r!=='ok')return r;
   const T=G.T[team],sp=SP[k];T.money-=sp.cost;T.cd[k]=sp.cd*(sp.needs==='silo'?siloFactor(team):1);tx=clamp(tx,-(HALF-20),HALF-20);tz=clamp(tz,-(HALF-20),HALF-20);
   if(k==='sat'){satSweep(team,tx,tz,sp.r);return 'ok'}
   if(k==='barrage'){const hq=pick(teamStructs(team,'hq'));const a=Math.atan2(hq.z-tz,hq.x-tx);
@@ -2036,7 +2046,7 @@ function updMissiles(dt){
             return true}return false};
         for(const st of G.s){if(st.t==='aa'&&!st.dead&&!st.con&&tryInt(st,WP.flakS))break}
         if(!m.dead)for(const u of G.u){if(u.t==='spaa'&&!u.dead&&tryInt(u,WP.flak))break}}}
-    if(k_cluster(m,s))continue;
+    if(k_cluster(m,s))continue;if(k_mirv(m,s))continue;
     if(s>=1&&!m.dead){m.dead=true;G.T[m.team].st.mHit++;missileImpact(m,sp)}}}
 function updJets(dt){
   for(const j of G.jets){if(j.dead)continue;
@@ -2176,7 +2186,7 @@ function loadGame(S){
   const byId=new Map(G.s.map(s=>[s.id,s]));
   for(const a of S.S){let s=byId.get(a[0]);const zn=G.Z.find(z=>z.id===a[9]);
     if(!s){s=addStruct(a[1],a[2],a[3],a[4],a[5],zn);s.id=a[0]}
-    s.team=a[2];s.hp=a[6];s.dead=!!a[7];if(s.dead)s.keep=true;if(a[8]>=0){s.con=true;s.cp=a[8]}else s.con=false}
+    s.team=a[2];s.hp=a[6];s.dead=!!a[7];if(s.dead){s.keep=true;if(isWall(s.t)&&!s.goneAt)s.goneAt=G.t+60}if(a[8]>=0){s.con=true;s.cp=a[8]}else s.con=false}
   for(const z of G.Z)z.structs=G.s.filter(s=>s.zone===z);
   G.u=[];for(const a of S.U){const u=spawnUnit(a[1],a[2],a[3],a[4]);u.id=a[0];u.ang=u.tAng=a[5];u.hp=a[6];u.order={type:a[7],x:a[8],z:a[9],leash:140};
     u.role=a[10]==='f'?'free':a[10]?{g:a[10]}:null}
@@ -2186,6 +2196,10 @@ function loadGame(S){
   G.ev.length=0;G.feed.length=0;feed('Saved game loaded.',-2,'good');rebuildGrid();updateHave()}
 
 // ---------- missile variants ----------
+function k_mirv(m,s){if(m.k!=='mirv'||m.dead||s<.88)return false;m.dead=true;G.T[m.team].st.mHit++;const sp=SP.mirv;emit({e:'airburst',x:m.x,y:m.y,z:m.z,big:1,team:m.team});
+  for(let i=0;i<sp.n;i++){const a=i/sp.n*TAU+rnd(-.3,.3),r=i===0?0:rnd(.45,1)*sp.r;const lx=m.lx+Math.cos(a)*r,lz=m.lz+Math.sin(a)*r,T=rnd(2.2,3.2);
+    G.p.push({k:'bomb',x:m.x,y:m.y,z:m.z,vx:(lx-m.x)/T,vz:(lz-m.z)/T,vy:(hAt(lx,lz)-m.y)/T+10*T,g:20,t:0,T:30,team:m.team,w:{dmg:sp.dmg,cls:'he',splash:42},dmg:sp.dmg,sub:1,big:1})}
+  return true}
 function k_cluster(m,s){if(m.k!=='cluster'||m.dead||s<.93)return false;m.dead=true;G.T[m.team].st.mHit++;const sp=SP.cluster;
   emit({e:'airburst',x:m.x,y:m.y,z:m.z,big:1,team:m.team});
   for(let i=0;i<sp.n;i++){const a=rnd(0,TAU),r=Math.sqrt(Math.random())*sp.r;const lx=m.lx+Math.cos(a)*r,lz=m.lz+Math.sin(a)*r,T=rnd(1.2,2.2);
@@ -2193,6 +2207,7 @@ function k_cluster(m,s){if(m.k!=='cluster'||m.dead||s<.93)return false;m.dead=tr
   return true}
 function missileImpact(m,sp){
   if(sp.emp){empBlast(m.lx,m.lz,sp.r,sp.emp,m.team);return}
+  if(m.k==='sead')for(const o of G.s){if(!o.dead&&o.team>=0&&!ally(o.team,m.team)&&['aa','cram','idrone','radar'].includes(o.t)&&d2(o.x,o.z,m.lx,m.lz)<120*120)o.emp=G.t+15}
   blast(m.lx,m.ly,m.lz,sp.r,sp.dmg,sp.cls||'he',m.team,{kind:m.k==='hyper'?'tac':m.k==='buster'?'arty':m.k==='thermo'?'cruise':m.k});
   if(m.k==='thermo')for(let i=0;i<10;i++){const a=rnd(0,TAU),r=rnd(10,sp.r*.9);emit({e:'fire',x:m.lx+Math.cos(a)*r,z:m.lz+Math.sin(a)*r,life:rnd(50,110),size:rnd(1.5,3)})}
   if(m.k==='hyper')emit({e:'sonic',x:m.lx,y:m.ly,z:m.lz})}
@@ -2230,7 +2245,7 @@ function supplyTick(dt){if(G.phase!=='war')return;G.dropT-=dt;
     const near=G.Z.slice().sort((a,b)=>d2(a.x,a.z,x,z)-d2(b.x,b.z,x,z))[0];feed('Supply drop worth $'+v.toLocaleString('en-US')+' coming down near '+near.name+'. First unit there takes it.',-2,'alert')}}
 
 // ---------- operations: send N units of each group to a zone ----------
-const OPG={inf:['rifle','rocket','sniper'],eng:['engineer'],tank:['tank','heavy'],armor:['ifv','spaa'],arty:['arty','mlrs','mortar'],heli:['heli'],drone:['drone']};
+const OPG={inf:['rifle','rocket','sniper'],eng:['engineer'],tank:['tank','heavy'],armor:['ifv','spaa'],arty:['arty','mlrs','mortar'],heli:['heli','gunship'],drone:['drone']};
 function runOp(team,n,zi,ids){const z=G.Z[zi];if(!z)return 'Unknown target';let total=0;const chosen=[];const idset=ids?new Set(ids):null;
   for(const g in OPG){const want=idset?999:Math.max(0,n[g]|0);if(!want)continue;
     const pool=G.u.filter(u=>!u.dead&&u.team===team&&OPG[g].includes(u.t)&&(idset?idset.has(u.id):u.order.type!=='repair')).sort((a,b)=>d2(a.x,a.z,z.x,z.z)-d2(b.x,b.z,z.x,z.z));
@@ -2312,8 +2327,8 @@ function aiBuild(T,mine){
   let queued=0;for(const c in T.q)for(const it of T.q[c]){cnt[it.t]=(cnt[it.t]||0)+1;queued++}
   if(mine.length+queued>=UNIT_CAP-6)return;
   const reserve=G.phase==='war'&&hasStruct(team,'silo')&&T.cd.tac<=4?650:0;
-  let enemyAir=0;for(const u of G.u)if(!u.dead&&!ally(u.team,team)&&u.t==='heli')enemyAir++;
-  const wt={heavy:(cnt.heavy||0)<4?.5:0,mortar:.5,rifle:3.2,rocket:2,sniper:.6,tank:1.8,ifv:1.2,arty:.6,mlrs:.35,spaa:.6+enemyAir*.25,heli:(cnt.heli||0)<6?.75:0,drone:(cnt.drone||0)<2?3:0,engineer:(cnt.engineer||0)<3?1.4:0};
+  let enemyAir=0;for(const u of G.u)if(!u.dead&&!ally(u.team,team)&&isHeli(u.t))enemyAir++;
+  const wt={gunship:(cnt.gunship||0)<3?.4:0,heavy:(cnt.heavy||0)<4?.5:0,mortar:.5,rifle:3.2,rocket:2,sniper:.6,tank:1.8,ifv:1.2,arty:.6,mlrs:.35,spaa:.6+enemyAir*.25,heli:(cnt.heli||0)<6?.75:0,drone:(cnt.drone||0)<2?3:0,engineer:(cnt.engineer||0)<3?1.4:0};
   if(enemyAir>3)wt.rocket+=1;
   for(let n=0;n<3;n++){
     const opts=Object.keys(wt).filter(t=>{const d=UT[t];return wt[t]>0&&unlocked(team,t)&&T.q[d.cat].length<2&&d.cost<=T.money-reserve&&hasStruct(team,CATS[d.cat].bld)});
@@ -2981,7 +2996,7 @@ function dipPopup(m){if(m.to!==ME||!m.opts)return;const el=$('dipPop');el.innerH
 // ================= PROFILE, UNLOCKS, RANKED, CHAT =================
 const UNLOCK={rifle:1,rocket:1,ifv:1,tank:1,barracks:1,factory:1,helipad:1,refinery:1,bunker:1,aa:1,radar:1,silo:1,tac:1,sat:1,
   drone:2,engineer:2,spaa:3,heli:4,sniper:5,arty:6,mortar:7,cruise:8,cram:9,hospital:10,mlrs:12,workshop:14,barrage:15,idrone:18,heavy:20,air:22,
-  cluster:25,buster:28,oil:30,emp:35,thermo:40,hyper:50,icbm:60,para:16};
+  cluster:25,buster:28,oil:30,emp:35,thermo:40,hyper:50,icbm:60,para:16,gunship:24,sead:26,mirv:45};
 const ITEM_NAME=k=>UT[k]?UT[k].name:ST[k]?ST[k].name:SP[k]?SP[k].name:k;
 function levelOf(team){return G&&G.T[team]&&G.T[team].lvl||100}
 function unlocked(team,k){return (UNLOCK[k]||1)<=levelOf(team)}
@@ -3061,7 +3076,7 @@ function unlockListHTML(){const p=P_();const items=Object.entries(UNLOCK).filter
 function setupArmies(cfg){const p=P_();const hum=G.T.filter(T=>T.human);
   for(const T of G.T){if(T.human){T.lvl=T.i===ME?p.lvl:(cfg.lvls&&cfg.lvls[T.i])||p.lvl;applySkills(T,T.i===ME?(p.skills||{}):(cfg.skills&&cfg.skills[T.i])||{});continue}
     const [a,b]=DIFF_LVL[G.diff||0];T.lvl=Math.round(a+Math.random()*(b-a));T.dmul=.7+.65*(T.lvl/100)}
-  if(cfg.bots)cfg.bots.forEach(bt=>{const T=G.T[bt.t];if(!T)return;T.botId=bt.id;T.botRp=bt.rp;T.lvl=bt.lvl;T.dmul=.7+.65*(bt.lvl/100);T.persona=bt.p;TEAMS[bt.t].name=bt.n;T.name=bt.n});
+  if(cfg.bots)cfg.bots.forEach(bt=>{const T=G.T[bt.t];if(!T)return;T.botId=bt.id;T.botRp=bt.rp;T.lvl=bt.lvl;T.dmul=.7+.45*(bt.lvl/100)+.35*(rankOf(bt.rp)/5);T.persona=bt.p;TEAMS[bt.t].name=bt.n;T.name=bt.n});
   for(const T of G.T)if(!T.human&&!T.persona)T.persona=pick(PERSONAS);
   for(const T of G.T)if(!T.human)applySkills(T,botSkills(T.lvl||1));
   if(cfg.sides){G.side=cfg.sides;G.ally=Array.from({length:NT},(_,a)=>Array.from({length:NT},(_,b)=>cfg.sides[a]===cfg.sides[b]))}
@@ -3230,9 +3245,9 @@ function showProfile(kind,ref){const d=profileData(kind,ref);if(!d)return;$('pfB
 // Loss or leaving: no gains at all, and you lose points based on your rank.
 const LOSS_BY_RANK=[50,100,150,200,300,400];
 function rankedPoints(T,win,rp){if(!win){const loss=LOSS_BY_RANK[rankOf(rp)];return{total:-loss,loss,kills:0,caps:0,blds:0,win:0}}
-  const kills=Math.min(400,T.kills),caps=Math.min(250,T.st.capZ*25),blds=Math.min(150,T.st.killsS*3),winB=150;return{total:kills+caps+blds+winB,kills,caps,blds,win:winB,loss:0}}
+  const kills=Math.min(400,T.kills),caps=Math.min(250,T.st.capZ*25),blds=Math.min(150,T.st.killsS*3),winB=250;return{total:kills+caps+blds+winB,kills,caps,blds,win:winB,loss:0}}
 // bots on the ladder follow the same rules
-function botLadderResult(bt,won,kills,caps,blds){if(won)bt.rp+=Math.min(400,kills)+Math.min(250,caps*25)+Math.min(150,blds*3)+150;else bt.rp=Math.max(0,bt.rp-LOSS_BY_RANK[rankOf(bt.rp)])}
+function botLadderResult(bt,won,kills,caps,blds){if(won)bt.rp+=Math.min(400,kills)+Math.min(250,caps*25)+Math.min(150,blds*3)+250;else bt.rp=Math.max(0,bt.rp-LOSS_BY_RANK[rankOf(bt.rp)])}
 
 // ================= SKILLS, BATTLE CARDS, STREAKS, MONEY REQUESTS, SMARTER BOTS =================
 // ---------- skill tree (lobby): small, strategic bonuses. 1 point per level, max 5 ranks each ----------
@@ -3279,7 +3294,7 @@ function cardCmd(team,c){const T=G.T[team];T.cards=T.cards||{hand:[],locks:[],ac
     C.active=pickd;recomputeMods(T);if(T.human)feed('Battle cards active: '+pickd.map(cd=>BCARDS.find(x=>x.id===cd.id).n).join(', ')+'.',team,'good');return 'ok'}
   return 'Unknown'}
 // bots take their cards when the war starts; mostly common ones so they do not always get the best
-function botCards(){for(const T of G.T){if(T.human||T.cards&&T.cards.active)continue;T.cards={hand:[0,1,2,3,4].map(()=>drawCard([.8,.18,.02]))};T.cards.active=T.cards.hand.sort(()=>Math.random()-.5).slice(0,3);recomputeMods(T)}}
+function botCards(){for(const T of G.T){if(T.human||T.cards&&T.cards.active)continue;const rk=T.botRp!==undefined?rankOf(T.botRp):Math.floor((T.lvl||1)/20);T.cards={hand:[0,1,2,3,4].map(()=>drawCard([.8-.07*rk,.18+.05*rk,.02+.02*rk]))};T.cards.active=T.cards.hand.sort(()=>Math.random()-.5).slice(0,3);recomputeMods(T)}}
 // ---------- kill streaks: 5 kills inside 10 seconds = double kill XP for the next 10 seconds ----------
 function streakKill(t){const T=G.T[t];T.stk=(T.stk||[]).filter(x=>G.t-x<10);T.stk.push(G.t);
   if(T.stkUntil>G.t){T.st.bonusXp=(T.st.bonusXp||0)+2}
@@ -3412,7 +3427,7 @@ function trainEvent(e){if(!trainingOn())return;UIS.tr=UIS.tr||{};if(e.e==='conSt
 // Bots know who they are talking to (teammate, ally or enemy), remember what was said and what happened
 // on the battlefield, ask follow-up questions and understand yes/no answers, and start conversations themselves.
 const chatIncomingBase=chatIncoming;
-const TK={log:[],dmg:{},last:{},pend:{},said:{},nextPro:0,recent:[]};
+const TK={log:[],dmg:{},last:{},pend:{},said:{},nextPro:0,recent:[],arg:{},cool:{}};
 function fresh(L,b){const used=TK.said[b]||(TK.said[b]=[]);let line=pick(L);for(let k=0;k<8&&(used.includes(line)||TK.recent.includes(line));k++)line=pick(L);used.push(line);if(used.length>14)used.shift();TK.recent.push(line);if(TK.recent.length>24)TK.recent.shift();return line}
 function tkRel(b,h){return ally(b,h)?(G.side&&G.side[b]===G.side[h]?'mate':'ally'):'enemy'}
 function tkName(h){return G.T[h].human&&h===ME?(NET.nick||'commander'):G.T[h].human?((NET.slotName&&NET.slotName(h))||G.T[h].name):G.T[h].name}
@@ -3478,7 +3493,7 @@ const INT=[['yes',/^ *(yes|yeah|yea|yep|ya|sure|ok|okay|k|do it|deal|lets go|let
   ['joke',/ (joke|funny|make me laugh) /],['how',/ (how are you|hows it going|how s it going|you ok|how you doing|how are things|status|how many) /],['where',/ (where are you|where is your|where s your|location) /],
   ['plan',/ (what should|plan|strategy|what now|ideas|what do we do|what next) /],['sorry',/ (sorry|my bad|oops|apologies) /],['bye',/ (bye|gtg|got to go|leaving|cya|see ya) /],
   ['threat',/ (going down|beat you|destroy you|crush|kill you|coming for|end you|wreck|you re dead|youre dead|gonna win|watch out|you re next|youre next) /],
-  ['insult',/ (noob|trash|bad|ez|loser|suck|garbage|cry|stupid|idiot|shut up|stfu) /],['praise',/ (nice|good job|well done|great|gj|gg wp|well played|respect) /],
+  ['insult',/ (noob|trash|bad|ez|loser|suck|sucks|garbage|cry|stupid|idiot|shut up|stfu|fuck you|f you|screw you|hate you|you lost|bot behavior|clown|dumb) /],['praise',/ (nice|good job|well done|great|gj|gg wp|well played|respect) /],
   ['thanks',/ (thanks|thank you|thx|ty) /],['laugh',/ (lol|lmao|haha|xd|rofl) /],['gg',/ (gg|good game) /],['teammate',/ (teammate|same team|my team|our team|we are team|ally|allies|partner) /],
   ['peace',/ (peace|truce|ceasefire|stop attacking|leave me alone) /],['question',/\?\s*$| (can you|do you|are you|read me|copy) /],['hello',/ (hi|hello|hey|yo|sup|glhf|gl hf|good luck|howdy) /]];
 function detect(text){const t=' '+text.toLowerCase().replace(/[^a-z0-9$ ]/g,' ')+' ';const q=/\?\s*$/.test(text);for(const [k,re] of INT){if(k==='question'){if(q||re.test(t))return k;continue}if(re.test(k==='yes'||k==='no'?text.toLowerCase():t))return k}return 'def'}
@@ -3496,10 +3511,19 @@ chatIncoming=function(team,text,ch){const kind=detect(text);const tl=' '+text.to
   else if(recent&&G.t-recent.t<20&&recent.ch===ch&&['def','question','how','thanks','sorry','laugh','where','plan','praise'].includes(kind)&&!G.T[recent.b].elim&&(ch==='team'?ally(recent.b,team):true))target=[G.T[recent.b]];
   else{const hostile=['threat','insult','peace'].includes(kind)&&ch!=='team';target=bots.filter(o=>ch==='team'?ally(o.i,team):hostile?!ally(o.i,team):true);if(!target.length)target=bots;target=target.sort(()=>Math.random()-.5).slice(0,['hello','gg','winning'].includes(kind)?2:1)}
   target.forEach((b,i)=>replyFrom(b.i,team,kind,ch,text,i*1500,named.includes(b)))}
-function replyFrom(b,h,kind,ch,text,delay,named){const B=G.T[b],per=B.persona||'chill',rel=tkRel(b,h);TK.last[h]={b,t:G.t,ch};
+function replyFrom(b,h,kind,ch,text,delay,named){const B=G.T[b],per=B.persona||'chill',rel=tkRel(b,h);{const A0=TK.arg[b+'_'+h];if(A0&&A0.mute>G.t)return}TK.last[h]={b,t:G.t,ch};
   const grudge=(typeof CHAT_MEM!=='undefined'?CHAT_MEM[b+'_'+h]||0:0);
   if(kind==='insult'||kind==='threat'){if(typeof CHAT_MEM!=='undefined')CHAT_MEM[b+'_'+h]=grudge+1}
   if(grudge>=2&&['hello','def','question','how'].includes(kind)&&per!=='friendly'){sayAs(b,pick(['still mad about earlier, {you}','oh, now you want to talk?','you were rude to me earlier. remember?','i have not forgotten what you said']).replace('{you}',tkName(h)),ch,delay);if(typeof CHAT_MEM!=='undefined')CHAT_MEM[b+'_'+h]--;return}
+  const ak=b+'_'+h;const A=TK.arg[ak]||(TK.arg[ak]={n:0,t:0,mute:0});
+  if(A.mute>G.t)return;
+  if(kind==='insult'||kind==='threat'){if(G.t-A.t>90)A.n=0;A.n++;A.t=G.t;
+    const sl=tkSlots(b,h);const stage=A.n;let pool;
+    if(stage>=5){A.mute=G.t+120;A.n=0;sayAs(b,fresh(rel==='enemy'?['muted.','blocked. enjoy talking to yourself','ok i am done. muted, '+sl.you,'not reading any of this. muted']:['ok, muting team chat for a bit. focus up','i am done arguing. talk when you want to win'],b),ch,delay);return}
+    if(stage===4)pool=rel==='enemy'?['you have typed more than you have captured, '+sl.you,'this is a lot of typing for someone with '+sl.yourBases+' bases','are you ok? genuinely','keep going, i am screenshotting this']:['we are on the same team, this is getting weird','seriously, stop. we have a war to win'];
+    else if(stage===3)pool=rel==='enemy'?['ok','sure thing','k','cool. anyway','noted. still winning','you done?']:['ok, ok. got it','fine. moving on'];
+    else if(stage===2)pool=rel==='enemy'?[(sl.killsOnYou>5?'still mad? '+sl.killsOnYou+' of your units say you should be':'still mad? we have barely started'),'scoreboard says otherwise, '+sl.you,'you said that already. try a new line','big talk. small army','i have '+sl.bases+' bases, you have '+sl.yourBases+'. do the math']:['easy, we are on the same squad','save it for '+sl.foe];
+    if(pool){sayAs(b,fresh(pool,b),ch,delay);return}}
   // teammates never argue back at you in all chat unless you called them out by name
   if(rel!=='enemy'&&(kind==='insult'||kind==='threat')&&!named&&ch!=='team')return;
   if((kind==='insult'||kind==='threat')&&typeof assemble==='function'&&Math.random()<.6){const l=assemble({kind,rel:rel==='enemy'?'enemy':'mate',per,h,base:(tkNear(b)||{name:'base'}).name,mood:grudge>=2?'angry':null});if(l){sayAs(b,l,ch,delay);return}}
@@ -3508,7 +3532,7 @@ function replyFrom(b,h,kind,ch,text,delay,named){const B=G.T[b],per=B.persona||'
   if(kind==='peace'){if(rel!=='enemy'){sayAs(b,voice(per,'we already are on good terms'),ch,delay);return}
     if(G.ranked){sayAs(b,pick(['ranked match. no deals','no truces in ranked, sorry']),ch,delay);return}
     const r=typeof dipCmd==='function'?dipCmd(h,{a:'truce',to:b,amt:0}):'no';if(r!=='ok')sayAs(b,voice(per,'not right now'),ch,delay);return}
-  const L=lineFor(kind,rel,per);const line=fresh(L,b);
+  let L=lineFor(kind,rel,per);if(L.length<3&&typeof assemble==='function'){const g=assemble({kind:rel==='enemy'?'insult':'def',rel:rel==='enemy'?'enemy':'mate',per,h});if(g)L=L.concat([g,g])}const line=fresh(L,b);
   sayAs(b,voice(per,fill(line,tkSlots(b,h))),ch,delay);
   // keep the conversation going: sometimes a follow-up question that understands yes/no answers
   if(Math.random()<.35)setTimeout(()=>followUp(b,h,ch),2500+Math.random()*2500)}
@@ -3542,8 +3566,9 @@ function talkTick(){if(!G||!started||G.phase!=='war'||NET.role==='client'||G.t<T
     setTimeout(()=>{if(!o.elim)sayAs(o.i,voice(o.persona,fill(fresh(rel?['on it','got you','ok, moving','holding fine, thanks','sending AA your way','copy that']:['come try it, {a}','big words, {a}','lol, sure','{ab} is not looking so safe either, {a}','you first, {a}','keep dreaming, {a}'],o.i),v)),rel?'team':'all')},2600);return}
   // 4. an enemy who has hurt the player a lot rubs it in, or one hurt by the player complains
   const foes=G.T.filter(T=>!T.human&&!T.elim&&!ally(T.i,h));for(const T of foes){const a=TK.dmg[T.i+'>'+h]||0,b2=TK.dmg[h+'>'+T.i]||0;
-    if(a>15&&a>b2*1.5&&Math.random()<.4){sayAs(T.i,voice(T.persona,pick(['that is '+a+' of your units so far, '+tkName(h)+'. want to keep count?','your army keeps walking into my guns','still want that fight, '+tkName(h)+'?'])),'all');return}
-    if(b2>15&&b2>a*1.5&&Math.random()<.4){sayAs(T.i,voice(T.persona,pick(['ok '+tkName(h)+', you can stop hunting my units now','why are you only attacking me?','go pick on someone else, '+tkName(h)])),'all');return}}}
+    if((TK.cool['k'+T.i]||0)>G.t)continue;
+    if(a>15&&a>b2*1.5&&Math.random()<.4){TK.cool['k'+T.i]=G.t+180;sayAs(T.i,voice(T.persona,fresh(['that is '+a+' of your units so far, '+tkName(h)+'. want to keep count?','your army keeps walking into my guns','still want that fight, '+tkName(h)+'?','you keep sending them, i keep deleting them','my gunners say thanks for the practice'],T.i)),'all');return}
+    if(b2>15&&b2>a*1.5&&Math.random()<.4){TK.cool['k'+T.i]=G.t+180;sayAs(T.i,voice(T.persona,fresh(['ok '+tkName(h)+', you can stop hunting my units now','why are you only attacking me?','go pick on someone else, '+tkName(h),'what did i ever do to you, '+tkName(h)+'?','there are other armies on this map, you know','ok, i get it, you hate me specifically'],T.i)),'all');return}}}
 
 // ================= ADVANCED VOCAB V2 =================
 // Lego-style dialogue: lines are assembled from building blocks (prefix + modifier + target + verb phrase +
@@ -3694,12 +3719,18 @@ function initReticle(){const mk=(n,col,closed)=>{const g=new THREE.BufferGeometr
   RET={blast:mk(72,0xff5a4a,1),scat:mk(72,0xffd36a,1),arc:mk(60,0xffffff,0),mv:null}}
 function ringAt(l,x,z,r){const p=l.geometry.attributes.position.array,n=p.length/3-1;for(let i=0;i<=n;i++){const a=i/n*TAU,px=x+Math.cos(a)*r,pz=z+Math.sin(a)*r;p[i*3]=px;p[i*3+1]=hAt(px,pz)+2;p[i*3+2]=pz}l.geometry.attributes.position.needsUpdate=true;l.visible=true}
 let GHOST=null;
+// wall snapping: join the ends of your existing walls, keep straight 15 degree angles and 10 m lengths (hold Alt for free placement)
+function wallSnap(x,z,from){let sn=false;if(!(UIS.keys&&UIS.keys.alt)){let best=null,bd=14*14;
+    for(const s of G.s){if(s.dead||s.team!==ME||!isWall(s.t))continue;for(const k of [-1,1]){const ex=s.x+Math.cos(s.a)*5*k,ez=s.z+Math.sin(s.a)*5*k;const d=d2(ex,ez,x,z);if(d<bd){bd=d;best=[ex,ez]}}}
+    if(best){x=best[0];z=best[1];sn=true}
+    else if(from){let a=Math.atan2(z-from.z,x-from.x),len=Math.hypot(x-from.x,z-from.z);const st=Math.PI/12;a=Math.round(a/st)*st;len=Math.max(10,Math.round(len/10)*10);x=from.x+Math.cos(a)*len;z=from.z+Math.sin(a)*len;sn=true}}
+  return{x,z,sn}}
 let GLINE=null;
 function updLineGhost(){const m=UIS.mode;if(!GLINE){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(6),3));GLINE=new THREE.Line(g,new THREE.LineBasicMaterial({color:0x8fe3a8,depthTest:false,transparent:true}));GLINE.renderOrder=9;GLINE.frustumCulled=false;scene.add(GLINE)}
-  if(!m||m.kind!=='line'||!UIS.lineA||!UIS.mouse.ok){GLINE.visible=false;UIS.lineInfo=null;return}const L=linePlan(ME,m.t,UIS.lineA.x,UIS.lineA.z,UIS.mouse.gx,UIS.mouse.gz);
+  if(!m||m.kind!=='line'||!UIS.lineA||!UIS.mouse.ok){GLINE.visible=false;UIS.lineInfo=null;return}const sp=wallSnap(UIS.mouse.gx,UIS.mouse.gz,UIS.lineA);const L=linePlan(ME,m.t,UIS.lineA.x,UIS.lineA.z,sp.x,sp.z);
   const p=GLINE.geometry.attributes.position.array;p.set([UIS.lineA.x,hAt(UIS.lineA.x,UIS.lineA.z)+3,UIS.lineA.z,L.x2,hAt(L.x2,L.z2)+3,L.z2]);GLINE.geometry.attributes.position.needsUpdate=true;GLINE.visible=true;
   const cost=lineCost(m.t,L.pts.length*10);const ok=L.zn&&L.pts.length&&G.T[ME].money>=cost;GLINE.material.color.set(ok?0x8fe3a8:0xff6d60);
-  UIS.lineInfo=(L.zn?Math.round(L.pts.length*10)+' m, '+fmt(cost):'Must be in or near one of your bases')+(L.zn&&G.T[ME].money<cost?', not enough funds':'')}
+  UIS.lineInfo=(L.zn?Math.round(L.pts.length*10)+' m, '+fmt(cost)+(sp.sn?', snapped':''):'Must be in or near one of your bases')+(L.zn&&G.T[ME].money<cost?', not enough funds':'')}
 function updGhost(){updLineGhost();const m=UIS.mode;if(!m||m.kind!=='place'||!UIS.mouse.ok){if(GHOST)GHOST.g.visible=false;return}
   if(!GHOST||GHOST.t!==m.t){if(GHOST)scene.remove(GHOST.g);const M=structModel(m.t,0),mat=new THREE.MeshBasicMaterial({color:0x8fe3a8,transparent:true,opacity:.45,depthWrite:false});
     const g=new THREE.Group();g.add(new THREE.Mesh(M.body,mat));if(M.top){const tp=new THREE.Mesh(M.top,mat);tp.position.y=M.topY;g.add(tp)}
@@ -3722,8 +3753,8 @@ function issue(type,x,z,e){const us=ownSel();if(!us.length)return false;if(type=
   if(type==='move'||type==='amove'||type==='attack'){marker(e?e.x:x,e?e.z:z,e?(e.rad||6)*1.4:10,type==='move'?0x8fe3a8:0xff6b5e,.7,'pulse');AU.ui('radio')}return true}
 function command(sx,sy){const m=UIS.mode;const g=rayGround(sx,sy);
   if(m&&m.kind==='strike'){if(!g)return;const r=act({k:'strike',s:m.k,x:g.x,z:g.z});if(r==='ok'){AU.ui('click');setMode(null)}else{AU.ui('deny');hint(r);setTimeout(()=>{if(!UIS.mode)hint(null)},1600)}return}
-  if(m&&m.kind==='line'){if(!g)return;if(!UIS.lineA){UIS.lineA={x:g.x,z:g.z};hint('Now click where the '+ST[m.t].name.toLowerCase()+' should end (up to 200 m). Esc cancels.');AU.ui('click');return}
-    const r=act({k:'wall',t:m.t,x1:UIS.lineA.x,z1:UIS.lineA.z,x2:g.x,z2:g.z});if(r==='ok'){AU.ui('done');UIS.lineA=null;if(!UIS.keys.shift)setMode(null);else hint('Click where the next line starts.')}else{AU.ui('deny');banner(ST[m.t].name,r,1.8)}return}
+  if(m&&m.kind==='line'){if(!g)return;if(!UIS.lineA){const s0=wallSnap(g.x,g.z,null);UIS.lineA={x:s0.x,z:s0.z};hint('Now click where the '+ST[m.t].name.toLowerCase()+' should end (up to 200 m). Esc cancels.');AU.ui('click');return}
+    const se=wallSnap(g.x,g.z,UIS.lineA);const r=act({k:'wall',t:m.t,x1:UIS.lineA.x,z1:UIS.lineA.z,x2:se.x,z2:se.z});if(r==='ok'){AU.ui('done');UIS.lineA=UIS.keys.shift?{x:se.x,z:se.z}:null;if(!UIS.keys.shift)setMode(null);else hint('Click where the next line starts.')}else{AU.ui('deny');banner(ST[m.t].name,r,1.8)}return}
   if(m&&m.kind==='place'){if(!g)return;const r=act({k:'place',t:m.t,x:g.x,z:g.z});if(r==='ok'){if(!UIS.keys.shift)setMode(null)}else{AU.ui('deny');banner(ST[m.t].name,r,1.6)}return}
   if(m&&m.kind==='rally'){if(g){act({k:'rally',x:g.x,z:g.z});if(RET.rallyM)scene.remove(RET.rallyM.m);RET.rallyM=marker(g.x,g.z,8,0x8fe3a8,1e9,'warn');feed('Rally point set. New units will gather there.',ME,'build')}setMode(null);return}
   const e=pickAt(sx,sy);
@@ -3737,7 +3768,7 @@ function setMode(m){UIS.mode=m;if(!m){hint(null);return}
   if(m.kind==='strike'){const sp=SP[m.k];hint(m.k==='sat'?'Click where to sweep for hidden bases. Right click or Esc to cancel.':'Click a target for the '+sp.name.toLowerCase()+' ('+fmt(sp.cost)+'). Right click or Esc to cancel.')}
   else if(m.kind==='amove')hint('Click where to attack-move. Units fight everything on the way.');
   else if(m.kind==='rally')hint('Click where new units should gather.');
-  else if(m.kind==='line')hint('Click where the '+ST[m.t].name.toLowerCase()+' should start. '+fmt(ST[m.t].c100)+' per 100 m. Hold Shift to keep building.');
+  else if(m.kind==='line')hint('Click where the '+ST[m.t].name.toLowerCase()+' should start. '+fmt(ST[m.t].c100)+' per 100 m. Hold Shift to chain walls, Alt to place freely.');
   else if(m.kind==='place')hint('Click inside one of your bases to place the '+ST[m.t].name.toLowerCase()+' ('+fmt(ST[m.t].cost)+'). Hold Shift to place several. Esc cancels.')}
 function selectAllArmy(){setSel(G.u.filter(u=>!u.dead&&u.team===ME&&u.t!=='drone'))}
 
@@ -4084,7 +4115,7 @@ function helpHTML(){return `<div style="columns:2 280px;column-gap:28px;font-siz
 <p><b>Talk.</b> Open Talk to deal with the AI armies: ask for a truce, pay for one, propose an alliance, send gifts, ask allies to attack a base, or demand surrender from an army down to its last bases. Each leader has a personality. Honorable ones keep their word; greedy ones want money and may turn on you; ruthless ones betray allies who look weak. Take their land and they will demand it back, and refusing can end your deal. An army down to its last base may offer to surrender and join you, depending on how you treated it.</p>
 <p><b>Oil derricks.</b> Cost $5,000 and pump +$10 every second. Build them in the Build menu.</p>
 <p><b>Levels and unlocks.</b> You earn XP from every match: winning, kills, captures and buildings destroyed. New units, buildings and missiles unlock as you level from 1 to 100. Difficulty sets the level of the AI armies: Recruit bots are level 1 to 10, Veteran 15 to 50, Warlord 60 to 100, and bots only use what their level unlocks.</p>
-<p><b>Ranked.</b> Six ranks from Bronze to Champion. Win and you earn 1 point per kill (up to 400), 25 per base captured, 3 per building destroyed and 150 for the win. Lose or leave and you earn nothing and lose 50 points in Bronze, 100 in Silver, 150 in Gold, 200 in Platinum, 300 in Diamond and 400 in Champion. Bots follow the same rules. Ranked comes in free-for-all (solo only), 2v2 and 3v3, played against ranked bots near your rank, with a friend or bot teammates. 2v2 uses a small map and 3v3 a medium one. Bots climb the leaderboard too.</p>
+<p><b>Ranked.</b> Six ranks from Bronze to Champion. Win and you earn 1 point per kill (up to 400), 25 per base captured, 3 per building destroyed and 250 for the win. Lose or leave and you earn nothing and lose 50 points in Bronze, 100 in Silver, 150 in Gold, 200 in Platinum, 300 in Diamond and 400 in Champion. Bots follow the same rules. Ranked comes in free-for-all (solo only), 2v2 and 3v3, played against ranked bots near your rank, with a friend or bot teammates. 2v2 uses a small map and 3v3 a medium one. Bots climb the leaderboard too.</p>
 <p><b>Paratroopers.</b> From the Strikes menu (P), a transport plane drops 20 soldiers on any spot. AA can shoot the plane down before the jump, and it has a two-minute cooldown.</p>
 <p><b>Challenges and calling cards.</b> Three random challenges appear every 8 hours on the start screen. Finish them for XP and new calling cards. Click your profile card to see your stats and pick a calling card. Click any name in chat or on the leaderboard to see that player's rank, record and past seasons.</p>
 <p><b>Skill tree.</b> Spend one point per level on small permanent bonuses: income, build speed, unit and building health, capture and repair speed, missile reload, AA and artillery damage. Each skill tops out at 5 ranks.</p>
@@ -4094,6 +4125,7 @@ function helpHTML(){return `<div style="columns:2 280px;column-gap:28px;font-siz
 <p><b>Walls and barriers.</b> In Build, pick a concrete wall ($500 per 100 m), Jersey barrier ($300) or tank blockers ($200), then click a start point and an end point near one of your bases. Walls and barriers stop enemy infantry and vehicles; tank blockers stop only vehicles. Your own units pass through as if through gates. Enemies that get stuck against them start shooting their way through.</p>
 <p><b>Friends.</b> In Multiplayer, share your 6-letter friend code and add your friends' codes. You can see when they are online or hosting, join their match, or invite them to yours.</p>
 <p><b>Saving.</b> Your level, rank, badges, cards and friends save on every change and when you leave a match (you still get XP for what you did). Updating the game keeps your progress. To move it between claude.ai, itch.io and the Windows app, use Backup code in Settings.</p>
+<p><b>New in 3.9.</b> MIRV (I): splits into six heavy warheads over the target. SEAD missile (G): hunts the nearest enemy AA, C-RAM, interceptor site or radar near where you aim and knocks out its electronics. Heavy gunship (Air menu): a tougher helicopter with long-range anti-tank rockets. Walls snap to the ends of your other walls, keep 15 degree angles and 10 m lengths; hold Shift to chain them and Alt to place freely. Destroyed walls clear away after a minute.</p>
 <p><b>Bot chatter (Advanced Vocab V2).</b> Bots build their lines on the fly from slang, tactical callouts and trash talk, and react to how you play: camping, missing shots, sweating the lobby or feeding units. Enemies roast you in all chat; teammates hype you up, give tips or ask you to regroup in team chat. Teammates never argue with what you type in all chat. Settings has a Clean option that removes swearing.</p>
 <p><b>Chat.</b> Press Enter to chat. Bots answer back, some salty, some chill. Switch between All and Team chat. Friends in your match see your messages.</p>
 <p><b>Production.</b> Units appear at a random barracks, factory or helipad you own, including captured ones. Each extra building of a type adds 20% build speed, up to 2.2x. Each extra missile silo cuts missile reload times.</p>
@@ -4166,7 +4198,7 @@ async function boot(){
       UIS.mmT-=dt;if(UIS.mmT<=0){UIS.mmT=.2;drawMinimap()}UIS.asT-=dt;if(UIS.asT<=0){UIS.asT=1;if(!$('assets').hidden)renderAssets();if(Math.random()<.05)refreshMMbg()}
       for(const p of G.T[ME].pings)if(!p.shown){p.shown=1;marker(p.x,p.z,p.r,0xffd36a,Math.max(1,p.until-G.t),'warn')}}
     if(bannerT>0){bannerT-=dt;if(bannerT<=0)$('banner').style.opacity=0}
-    if(AU.ready()){let hm=0,em=0;for(const u of G.u){if(u.dead||!canSee(ME,u))continue;if(u.t==='heli'){const d=Math.hypot(u.x-CAM.tx,u.z-CAM.tz,CAM.dist*.5);if(d<700)hm+=1/(1+(d/150)**2.2)}
+    if(AU.ready()){let hm=0,em=0;for(const u of G.u){if(u.dead||!canSee(ME,u))continue;if(isHeli(u.t)){const d=Math.hypot(u.x-CAM.tx,u.z-CAM.tz,CAM.dist*.5);if(d<700)hm+=1/(1+(d/150)**2.2)}
         else if(UT[u.t].cat==='veh'&&u.moving){const d=Math.hypot(u.x-CAM.tx,u.z-CAM.tz,CAM.dist*.4);em+=.25/(1+(d/220)**2)}}
       AU.tick(dt,DAY,Math.min(1,hm),Math.min(1,em),clamp((CAM.dist-150)/1300,0,1),started&&G.phase==='war')}};
   requestAnimationFrame(loop)}
