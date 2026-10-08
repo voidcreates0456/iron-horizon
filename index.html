@@ -395,7 +395,7 @@ body.pre #top,body.pre #rail,body.pre #mini,body.pre #feed,body.pre #labels,body
       <div class="lh">Unlocks</div><div id="unlocks"></div></div>
     <div id="tabMp" hidden><div class="netrow"><span class="netstat" id="netStat">Connecting</span></div><div id="lobby"></div><div id="friendsBox"></div></div>
     <div class="prof" id="prof"></div>
-    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 3.7 (real conversations)</div>
+    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 3.8 (ranked rework, Advanced Vocab V2)</div>
     <div class="keys">
       <div><b>Left click or drag</b> select units</div><div><b>Right click</b> move or attack</div>
       <div><b>WASD or arrows</b> move camera</div><div><b>Wheel</b> zoom, <b>Q E</b> rotate, <b>R T</b> tilt</div>
@@ -1809,7 +1809,7 @@ function fireWeapon(src,tg,w){
   const [mx,my,mz]=muzzle(src);let tx=tg.x,ty=tgtY(tg),tz=tg.z;
   emit({e:'shot',x:mx,y:my,z:mz,a:src.tAng,w:wk,team,srcObj:src});
   if(w.fx==='tracer'||w.fx==='flak'){
-    const mv=tg.kind==='u'&&tg.moving?.82:1;const hit=Math.random()<(w.acc||.7)*mv*(tg.kind==='s'?1.3:1);
+    const mv=tg.kind==='u'&&tg.moving?.82:1;const hit=Math.random()<(w.acc||.7)*mv*(tg.kind==='s'?1.3:1);{const Ts=G.T[src.team]&&G.T[src.team].st;if(Ts){Ts.shots=(Ts.shots||0)+1;if(hit)Ts.hits=(Ts.hits||0)+1}}
     if(!hit){tx+=rnd(-4,4);tz+=rnd(-4,4);ty+=rnd(-1,2)}else damage(tg,w.dmg*rnd(.85,1.15),w.cls,team);
     emit({e:w.fx==='flak'?'flak':'tracer',x1:mx,y1:my,z1:mz,x2:tx,y2:ty,z2:tz,hit,w:wk,team,tgtS:tg.kind==='s'})}
   else if(w.fx==='shell'){const dd=Math.hypot(tx-mx,ty-my,tz-mz),T=dd/w.spd;
@@ -2989,8 +2989,8 @@ function lockMsg(k){return 'Unlocks at level '+(UNLOCK[k]||1)}
 const xpFor=l=>100+25*(l-1);
 const DIFF_LVL=[[1,10],[15,50],[60,100]];
 // ---------- ranks ----------
-const RANKS=[{n:'Bronze',rp:0,c1:'#c98a52',c2:'#7a4a24'},{n:'Silver',rp:300,c1:'#e3e8ee',c2:'#7d8a96'},{n:'Gold',rp:700,c1:'#ffd66b',c2:'#b07a12'},
-  {n:'Platinum',rp:1200,c1:'#8ff0e0',c2:'#2f8f86'},{n:'Diamond',rp:1800,c1:'#a8c8ff',c2:'#3b5bd6'},{n:'Champion',rp:2600,c1:'#ff9a9a',c2:'#9b1d3a'}];
+const RANKS=[{n:'Bronze',rp:0,c1:'#c98a52',c2:'#7a4a24'},{n:'Silver',rp:1000,c1:'#e3e8ee',c2:'#7d8a96'},{n:'Gold',rp:2500,c1:'#ffd66b',c2:'#b07a12'},
+  {n:'Platinum',rp:4500,c1:'#8ff0e0',c2:'#2f8f86'},{n:'Diamond',rp:7000,c1:'#a8c8ff',c2:'#3b5bd6'},{n:'Champion',rp:10000,c1:'#ff9a9a',c2:'#9b1d3a'}];
 function rankOf(rp){let r=0;for(let i=0;i<RANKS.length;i++)if(rp>=RANKS[i].rp)r=i;return r}
 function rankBadge(rp,size,anim){const i=rankOf(rp),R=RANKS[i],s=size||28,id='rg'+i+'_'+s+'_'+Math.random().toString(36).slice(2,6);
   const chev=[...Array(Math.min(i+1,5))].map((_,k)=>`<path d="M16 ${21-k*3.2}l-6-3.4M16 ${21-k*3.2}l6-3.4" stroke="rgba(255,255,255,.85)" stroke-width="1.6" stroke-linecap="round"/>`).join('');
@@ -3016,8 +3016,8 @@ function botRoster(){let b=SAVE.lsGet('bots');const sn=seasonNow();if(b&&b.lengt
   SAVE.lsSet('bots',b);return b}
 function saveRoster(b){SAVE.lsSet('bots',b)}
 // a little life on the ladder: bots play their own games between yours
-function simulateLadder(b,n){for(let k=0;k<n;k++){const a=pick(b),c=pick(b);if(a===c)continue;const pa=1/(1+Math.pow(10,(c.rp-a.rp)/600));const aw=Math.random()<pa;const W_=aw?a:c,L_=aw?c:a;
-  W_.rp+=Math.round(28+Math.random()*12);W_.w++;L_.rp=Math.max(0,L_.rp-Math.round(14+Math.random()*10));L_.l++;W_.lvl=Math.min(100,W_.lvl+(Math.random()<.3?1:0))}}
+function simulateLadder(b,n){for(let k=0;k<n;k++){const a=pick(b),c=pick(b);if(a===c)continue;const pa=1/(1+Math.pow(10,(c.rp-a.rp)/3000));const aw=Math.random()<pa;const W_=aw?a:c,L_=aw?c:a;
+  botLadderResult(W_,true,Math.round(rnd(60,320)),Math.round(rnd(1,6)),Math.round(rnd(5,30)));W_.w++;botLadderResult(L_,false);L_.l++;W_.lvl=Math.min(100,W_.lvl+(Math.random()<.3?1:0))}}
 function pickBots(n,rp,exclude){const b=botRoster().filter(x=>!(exclude||[]).includes(x.id));let w=250,out=[];
   while(out.length<n&&w<5000){out=b.filter(x=>Math.abs(x.rp-rp)<=w).sort(()=>Math.random()-.5).slice(0,n);w*=1.6}
   if(out.length<n)out=b.sort((x,y)=>Math.abs(x.rp-rp)-Math.abs(y.rp-rp)).slice(0,n);return out}
@@ -3038,14 +3038,13 @@ function progressAfterMatch(result){const p=P_(),T=G.T[ME],win=result==='win';co
   p.stats.kills+=T.kills;p.stats.caps+=T.st.capZ;p.stats.bdest+=T.st.killsS;p.stats.missiles+=T.st.mFired;if(win)p.stats.wins++;
   if(G.dip)p.stats.allies+=G.T.filter(o=>o.i!==ME&&G.ally[o.i][ME]&&o.ai).length;
   const xp=Math.round((win?400:150)+(T.st.bonusXp||0)+T.kills*2+T.st.capZ*20+T.st.killsS*5+Math.min(G.t,3600)/12)*(rk?1.5:1);const lvBefore=p.lvl;const ups=gainXP(p,xp);
-  let rpd=0;if(rk){const foes=G.T.filter(o=>!ally(o.i,ME)&&o.botRp!==undefined);const avg=foes.length?foes.reduce((a,o)=>a+o.botRp,0)/foes.length:p.rp;
-    const exp=1/(1+Math.pow(10,(avg-p.rp)/600));rpd=Math.round(win?40*(1-exp)+12:-(30*exp+8));rpd+=Math.min(10,Math.round(T.kills/12));p.rp=Math.max(0,p.rp+rpd);
+  let rpd=0,rpB=null;if(rk){const r=rankedPoints(T,win,p.rp);rpd=r.total;rpB=r;p.rp=Math.max(0,p.rp+rpd);
     if(win){p.rw++;p.rstreak++}else{p.rl++;p.rstreak=0}
     const b=botRoster();for(const o of G.T){if(o.botId===undefined)continue;const bt=b.find(x=>x.id===o.botId);if(!bt)continue;const ow=ally(o.i,ME)?win:!win&&!o.elim;
-      if(ow){bt.rp+=Math.round(25+Math.random()*10);bt.w++}else{bt.rp=Math.max(0,bt.rp-Math.round(12+Math.random()*10));bt.l++}bt.rp+=Math.min(8,Math.round(o.kills/15))}
+      botLadderResult(bt,ow,o.kills,o.st.capZ,o.st.killsS);if(ow)bt.w++;else bt.l++;bt.k=(bt.k||0)+o.kills}
     simulateLadder(b,8);saveRoster(b)}
   p.games=(p.games||0);const ch=chalAfterMatch(T,win);let ups2=0;if(ch.xp)ups2=gainXP(p,ch.xp);
-  awardBadges(p);return{xp,ups:ups+ups2,lvl:p.lvl,lvBefore,rpd,rp:p.rp,chxp:ch.xp,cards:ch.cards}}
+  awardBadges(p);return{rpB,xp,ups:ups+ups2,lvl:p.lvl,lvBefore,rpd,rp:p.rp,chxp:ch.xp,cards:ch.cards}}
 // ---------- leaderboard ----------
 function seasonLine(){const d=seasonEndsIn(),days=Math.floor(d/86400000),hrs=Math.floor(d%86400000/3600000);return 'Season '+seasonNow()+' ends in '+(days?days+' days ':'')+hrs+' hours. All ranks reset to Bronze when a new season starts.'}
 function leaderboardHTML(){const p=P_();const b=botRoster();const rows=b.map(x=>({n:x.n,rp:x.rp,lvl:x.lvl,w:x.w,l:x.l,bot:1,id:x.id})).concat([{n:(NET.nick||nameOf(NET.myId)||'You')+' (you)',rp:p.rp,lvl:p.lvl,w:p.rw,l:p.rl,me:1}]).sort((a,c)=>c.rp-a.rp);
@@ -3225,6 +3224,15 @@ function profileHTML(d){if(!d)return '';const R=RANKS[rankOf(d.rp)];
     <dt>Past seasons</dt><dd>${d.past&&d.past.length?d.past.slice(-4).reverse().map(x=>'Season '+x.s+': '+x.rank+' ('+x.rp+')').join('<br>'):'None yet'}</dd></dl>`}
 function showProfile(kind,ref){const d=profileData(kind,ref);if(!d)return;$('pfBody').innerHTML=profileHTML(d)+(d.me?'<div class="lh">Calling card</div>'+cardPickerHTML():'');$('pfm').hidden=false;
   $('pfBody').querySelectorAll('[data-card]').forEach(b=>b.onclick=()=>{P_().card=b.dataset.card;SAVE.saveProfile();showProfile('me');renderStartProfile();AU.ui('click')});AU.ui('click')}
+
+// ---------- ranked points from performance ----------
+// Win: 1 point per kill (max 400) + 25 per base captured + 3 per building destroyed + 150 for the win.
+// Loss or leaving: no gains at all, and you lose points based on your rank.
+const LOSS_BY_RANK=[50,100,150,200,300,400];
+function rankedPoints(T,win,rp){if(!win){const loss=LOSS_BY_RANK[rankOf(rp)];return{total:-loss,loss,kills:0,caps:0,blds:0,win:0}}
+  const kills=Math.min(400,T.kills),caps=Math.min(250,T.st.capZ*25),blds=Math.min(150,T.st.killsS*3),winB=150;return{total:kills+caps+blds+winB,kills,caps,blds,win:winB,loss:0}}
+// bots on the ladder follow the same rules
+function botLadderResult(bt,won,kills,caps,blds){if(won)bt.rp+=Math.min(400,kills)+Math.min(250,caps*25)+Math.min(150,blds*3)+150;else bt.rp=Math.max(0,bt.rp-LOSS_BY_RANK[rankOf(bt.rp)])}
 
 // ================= SKILLS, BATTLE CARDS, STREAKS, MONEY REQUESTS, SMARTER BOTS =================
 // ---------- skill tree (lobby): small, strategic bonuses. 1 point per level, max 5 ranks each ----------
@@ -3474,7 +3482,7 @@ const INT=[['yes',/^ *(yes|yeah|yea|yep|ya|sure|ok|okay|k|do it|deal|lets go|let
   ['thanks',/ (thanks|thank you|thx|ty) /],['laugh',/ (lol|lmao|haha|xd|rofl) /],['gg',/ (gg|good game) /],['teammate',/ (teammate|same team|my team|our team|we are team|ally|allies|partner) /],
   ['peace',/ (peace|truce|ceasefire|stop attacking|leave me alone) /],['question',/\?\s*$| (can you|do you|are you|read me|copy) /],['hello',/ (hi|hello|hey|yo|sup|glhf|gl hf|good luck|howdy) /]];
 function detect(text){const t=' '+text.toLowerCase().replace(/[^a-z0-9$ ]/g,' ')+' ';const q=/\?\s*$/.test(text);for(const [k,re] of INT){if(k==='question'){if(q||re.test(t))return k;continue}if(re.test(k==='yes'||k==='no'?text.toLowerCase():t))return k}return 'def'}
-function sayAs(b,text,ch,delay){const n=String(text).length;setTimeout(()=>{if(!G||G.over&&!/gg/.test(text)||G.T[b].elim&&!/gg|out/.test(text))return;chatPost(b,text,ch)},(delay||0)+700+Math.min(2600,n*35)+Math.random()*600)}
+function sayAs(b,text,ch,delay){text=typeof botClean==='function'?botClean(String(text)):text;const n=String(text).length;setTimeout(()=>{if(!G||G.over&&!/gg/.test(text)||G.T[b].elim&&!/gg|out/.test(text))return;chatPost(b,text,ch)},(delay||0)+700+Math.min(2600,n*35)+Math.random()*600)}
 // ---------- the player talks ----------
 chatIncoming=function(team,text,ch){const kind=detect(text);const tl=' '+text.toLowerCase()+' ';
   // who is being addressed: a named bot, the bot you were just talking with, or the channel
@@ -3487,11 +3495,14 @@ chatIncoming=function(team,text,ch){const kind=detect(text);const tl=' '+text.to
   if(named.length)target=named;
   else if(recent&&G.t-recent.t<20&&recent.ch===ch&&['def','question','how','thanks','sorry','laugh','where','plan','praise'].includes(kind)&&!G.T[recent.b].elim&&(ch==='team'?ally(recent.b,team):true))target=[G.T[recent.b]];
   else{const hostile=['threat','insult','peace'].includes(kind)&&ch!=='team';target=bots.filter(o=>ch==='team'?ally(o.i,team):hostile?!ally(o.i,team):true);if(!target.length)target=bots;target=target.sort(()=>Math.random()-.5).slice(0,['hello','gg','winning'].includes(kind)?2:1)}
-  target.forEach((b,i)=>replyFrom(b.i,team,kind,ch,text,i*1500))}
-function replyFrom(b,h,kind,ch,text,delay){const B=G.T[b],per=B.persona||'chill',rel=tkRel(b,h);TK.last[h]={b,t:G.t,ch};
+  target.forEach((b,i)=>replyFrom(b.i,team,kind,ch,text,i*1500,named.includes(b)))}
+function replyFrom(b,h,kind,ch,text,delay,named){const B=G.T[b],per=B.persona||'chill',rel=tkRel(b,h);TK.last[h]={b,t:G.t,ch};
   const grudge=(typeof CHAT_MEM!=='undefined'?CHAT_MEM[b+'_'+h]||0:0);
   if(kind==='insult'||kind==='threat'){if(typeof CHAT_MEM!=='undefined')CHAT_MEM[b+'_'+h]=grudge+1}
   if(grudge>=2&&['hello','def','question','how'].includes(kind)&&per!=='friendly'){sayAs(b,pick(['still mad about earlier, {you}','oh, now you want to talk?','you were rude to me earlier. remember?','i have not forgotten what you said']).replace('{you}',tkName(h)),ch,delay);if(typeof CHAT_MEM!=='undefined')CHAT_MEM[b+'_'+h]--;return}
+  // teammates never argue back at you in all chat unless you called them out by name
+  if(rel!=='enemy'&&(kind==='insult'||kind==='threat')&&!named&&ch!=='team')return;
+  if((kind==='insult'||kind==='threat')&&typeof assemble==='function'&&Math.random()<.6){const l=assemble({kind,rel:rel==='enemy'?'enemy':'mate',per,h,base:(tkNear(b)||{name:'base'}).name,mood:grudge>=2?'angry':null});if(l){sayAs(b,l,ch,delay);return}}
   if(kind==='gg'){sayAs(b,pick(G.over?['gg wp','gg, fun match','gg everyone']:rel==='enemy'?['gg? the game is not over yet','calling gg early? confident','gg when i take {base}, maybe'].map(s=>fill(s,tkSlots(b,h))):['gg, but let us finish them first','not over yet, partner']),ch,delay);return}
   if(kind==='teammate'){sayAs(b,voice(per,rel==='enemy'?pick(['we are not on the same team. check the colors','no, i am the one shooting you','teammates? not today']):pick(['yes, same side. i have your back','teammates, yeah. now let us win this','we sure are. stick close'])),ch,delay);return}
   if(kind==='peace'){if(rel!=='enemy'){sayAs(b,voice(per,'we already are on good terms'),ch,delay);return}
@@ -3515,6 +3526,7 @@ function talkEvent(e){if(!G||!G.T||NET.role==='client')return;
   if(e.e==='die'&&e.u){const v=e.u.team,by=e.u.lastBy;if(by>=0&&by!==v)TK.dmg[by+'>'+v]=(TK.dmg[by+'>'+v]||0)+1}
   if(e.e==='capture'&&e.old>=0&&e.t>=0){TK.log.push({k:'cap',t:e.t,old:e.old,z:e.z,at:G.t});if(TK.log.length>40)TK.log.shift()}}
 function talkTick(){if(!G||!started||G.phase!=='war'||NET.role==='client'||G.t<TK.nextPro)return;TK.nextPro=G.t+rnd(14,26);
+  if(typeof vocabTick==='function'&&Math.random()<.55&&vocabTick())return;
   const hum=G.T.filter(T=>T.human&&!T.elim);if(!hum.length)return;const h=pick(hum).i;const ev=TK.log.filter(x=>G.t-x.at<40);
   // 1. someone took a base: from the player, or the player took one of theirs
   for(const x of ev.reverse()){if(x.used)continue;
@@ -3532,6 +3544,103 @@ function talkTick(){if(!G||!started||G.phase!=='war'||NET.role==='client'||G.t<T
   const foes=G.T.filter(T=>!T.human&&!T.elim&&!ally(T.i,h));for(const T of foes){const a=TK.dmg[T.i+'>'+h]||0,b2=TK.dmg[h+'>'+T.i]||0;
     if(a>15&&a>b2*1.5&&Math.random()<.4){sayAs(T.i,voice(T.persona,pick(['that is '+a+' of your units so far, '+tkName(h)+'. want to keep count?','your army keeps walking into my guns','still want that fight, '+tkName(h)+'?'])),'all');return}
     if(b2>15&&b2>a*1.5&&Math.random()<.4){sayAs(T.i,voice(T.persona,pick(['ok '+tkName(h)+', you can stop hunting my units now','why are you only attacking me?','go pick on someone else, '+tkName(h)])),'all');return}}}
+
+// ================= ADVANCED VOCAB V2 =================
+// Lego-style dialogue: lines are assembled from building blocks (prefix + modifier + target + verb phrase +
+// punchline) chosen by who is talking (enemy or teammate), the bot's personality, the bot's own situation
+// (winning, losing, panicking) and what the player is actually doing (camping, missing, sweating, feeding).
+const VB={
+  // 1. prefixes / interjections
+  pre:{ag:['Yo','Ay','Oi','Look','Well','Damn','Heh','Oh','Wow','Bro','Buddy','Chief','Check','Wait'],
+    fr:['Alright','Copy','Hang on','Heads up','Clear','Steady','Yo boss','Stand by','Move','Go'],
+    panic:['Ahh','No','Fuck','Wait','Shit','God','Help','Clear','Ugh','Oh god'],
+    salty:['Ew','Bruh','Are you serious','Actual trash','Unreal','Fucking','Get real']},
+  // 2. modifiers
+  mod:{state:['absolute','total','pure','literal','massive','major','minor','lazy','sweaty','blind','trash','god-tier','slow','fast','still','panic','baked','cooked','wrecked','cracked','derped'],
+    salty:['sub-human','hopeless','embarrassing','pathetic','brain-dead','garbage','cringe','cheating','clueless','hard-stuck','incompetent'],
+    hype:['cracked','god-tier','absolutely cooking','unstoppable','on fire','built different']},
+  // 3. targets / actors
+  tgt:{player:['bro','kid','clown','rat','ghost','camper','sweat','main character','target','target dummy','bot'],
+    salty:['tourist','liability','free-farm','cushion','waste-of-space','NPC','zero-brain'],
+    squad:['us','we','team','squad','my armor','my gun','my shield','backup','medic']},
+  // 4. action verbs
+  verb:{off:['missing','camping','hiding','gripping','whiffing','feeding','smurfing','sweating','running','chasing','crying','wasting'],
+    tac:['pushing','flanking','bounding','reloading','healing','retreating','holding','breathing','peeking'],
+    salty:['throwing','griefing','costing us','tanking','floundering','flailing','choking']},
+  // 5. objects / locations / tech
+  obj:['corner','angle','lobby','wall','cover','spawn','clip','crosshair','ammo','mag','stims','shield'],
+  // 6. punchlines / suffixes
+  pl:{meme:['Diffed','Clapped','Griefing','Zero','Trash','EZ','Skill issue','NPC','Goofy','Ass','Offline'],
+    tac:['Now','Hard','Fast','Clear','Down','Out','Dead','Ready'],
+    salty:['Uninstall','Delete the game','Uninstall life','Go back to kindergarten','Absolute cinematic failure','Touch grass','Unranked behavior','Delete your account','Unplayable']}};
+// verb phrases per player behavior, built from the verbs and objects above
+const VP={
+  camp:()=>pick(['camping that '+pick(['corner','angle','wall','spawn']),'hiding behind that '+pick(['wall','cover','corner']),'gripping the same '+pick(['angle','corner']),'holding that '+pick(['angle','corner'])+' for ten minutes','camping your own '+pick(['spawn','base'])]),
+  miss:()=>pick(['missing every shot','whiffing the whole '+pick(['mag','clip']),'wasting all your '+pick(['ammo','mags']),'shooting at the '+pick(['wall','sky','ground']),'missing with that '+pick(['blind','derped','slow'])+' crosshair']),
+  sweat:()=>pick(['sweating the whole lobby','smurfing on all of us','chasing every kill','running the whole map','farming our spawn']),
+  feed:()=>pick(['feeding the whole match','throwing units away','tanking for no reason','choking every fight','flailing around the '+pick(['spawn','lobby']),'donating free kills'])};
+const CAP=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const pk=a=>pick(a);
+function you(h){return tkName(h)}
+// sentence assembler: picks a template for the situation and fills it from the blocks
+function assemble(ctx){const {kind,rel,per,h}=ctx;const salty=per==='salty'||ctx.mood==='angry';const v={you:you(h),base:ctx.base||'base'};
+  const E={// enemy lines about the player
+    camp:[()=>`${pk(VB.pre.ag)}, ${VP.camp()}? ${pk(salty?VB.pl.salty:VB.pl.meme)}.`,()=>`${pk(VB.pre.ag)} ${pk(VB.tgt.player)}, you're ${VP.camp()} like a ${pk(VB.mod.state)} ${pk(['rat','camper','ghost'])}.`,
+      ()=>`${CAP(pk(VB.mod.salty))} ${pk(['camper','rat','tourist'])} behavior. ${pk(VB.pl.salty)}.`,()=>`Imagine ${VP.camp()} in a war. ${pk(VB.pl.meme)}.`,()=>`${v.you}, come out from behind that ${pk(['wall','cover','corner'])}, ${pk(VB.tgt.player)}.`],
+    miss:[()=>`${pk(VB.pre.ag)}, potato aim. ${pk(VB.pl.meme)}.`,()=>`${pk(VB.pre.ag)} ${pk(VB.tgt.player)}, you're ${VP.miss()}. ${pk(['Skill issue','Diffed','Zero'])}.`,
+      ()=>`${v.you} ${VP.miss()} again. ${pk(VB.pl.salty)}.`,()=>`My ${pk(['armor','shield'])} is fine thanks to your ${pk(VB.mod.state)} aim, ${pk(VB.tgt.player)}.`,()=>`Is your ${pk(['crosshair','mouse'])} ${pk(['offline','asleep','derped'])}? ${pk(VB.pl.meme)}.`],
+    sweat:[()=>`${pk(VB.pre.panic)}! ${v.you} is ${VP.sweat()}! Focus them ${pk(VB.pl.tac).toLowerCase()}!`,()=>`${pk(VB.pre.ag)}, ${pk(['absolute','total','literal'])} sweatlord alert. Everyone on ${v.you}.`,
+      ()=>`${pk(VB.pre.ag)} ${pk(['chief','buddy'])}, touch some grass, you're ${VP.sweat()}.`,()=>`${pk(VB.pre.panic)}, we're getting ${pk(['diffed','clapped','cooked','wrecked'])}. Who is this ${pk(['sweat','smurf','main character'])}?`],
+    feed:[()=>`${pk(VB.pre.salty)}, ${v.you} is ${VP.feed()}. ${pk(VB.pl.salty)}.`,()=>`${pk(VB.pre.ag)}, thanks for the ${pk(['free-farm','free kills','cushion'])}, ${pk(VB.tgt.salty)}.`,
+      ()=>`${CAP(pk(VB.mod.salty))} ${pk(VB.tgt.salty)}. ${pk(VB.pl.salty)}.`,()=>`${pk(VB.pre.ag)} ${pk(VB.tgt.player)}, you're ${VP.feed()}. ${pk(VB.pl.meme)}.`,()=>`${pk(['Absolute','Total','Pure'])} cinematic failure from ${v.you}. ${pk(VB.pl.salty)}.`],
+    insult:[()=>`${pk(VB.pre.salty)}, ${pk(VB.mod.salty)} ${pk(VB.tgt.salty)}. ${pk(VB.pl.salty)}.`,()=>`${pk(VB.pre.ag)} ${pk(VB.tgt.player)}, typing won't save you. ${pk(VB.pl.meme)}.`,
+      ()=>`Says the ${pk(VB.mod.salty)} ${pk(VB.tgt.salty)}. ${pk(VB.pl.meme)}.`,()=>`${pk(VB.pre.ag)}, cope harder, ${pk(VB.tgt.player)}.`],
+    threat:[()=>`${pk(VB.pre.ag)}, come try it, ${pk(VB.tgt.player)}. ${pk(VB.pl.meme)}.`,()=>`Big words from a ${pk(VB.mod.state)} ${pk(VB.tgt.player)}. ${pk(VB.pl.salty)}.`,()=>`${pk(VB.pre.ag)} ${v.you}, I'll be at ${v.base}. Bring ${pk(['backup','a medic','your whole squad'])}.`],
+    winning:[()=>`${pk(VB.pre.ag)}, this lobby is ${pk(['diffed','clapped','EZ'])}. ${pk(VB.pl.meme)}.`,()=>`${pk(VB.pre.ag)}, too ${pk(['EZ','easy','smooth'])}. Who's next?`],
+    losing:[()=>`${pk(VB.pre.panic)}, ${pk(['my armor','my shield','my gun'])} is ${pk(['cooked','wrecked','gone'])}! ${pk(['Backup','Medic','Help'])}!`,()=>`${pk(VB.pre.salty)}, this is ${pk(['cheating','unplayable','rigged'])}. ${pk(['Lag','Report','Unreal'])}.`,
+      ()=>`${pk(VB.pre.panic)}! They're ${pk(VB.verb.tac.slice(0,3))} ${pk(['us','our spawn','our base'])}! ${pk(VB.pl.tac)}!`]};
+  const F={// teammate lines about the player
+    camp:[()=>`${pk(VB.pre.fr)}, you still ${pk(['holding that angle','sitting on that corner','behind that wall'])}? We need you ${pk(['pushing','flanking','bounding up'])}.`,
+      ()=>`${pk(VB.pre.fr)}, this stalemate is ${pk(['killing us','costing us','going nowhere'])}. ${pk(['Push','Flank','Move'])} with me ${pk(['now','hard','fast'])}.`,()=>`${pk(VB.pre.fr)}, check in. You ${pk(['good','alive','still there'])} back at ${v.base}?`],
+    miss:[()=>`${pk(VB.pre.fr)}, aim's a little ${pk(['slow','derped','blind','baked'])} today. ${pk(['Take your time','Focus one target','Let the artillery soften them first','Lead the tanks'])}.`,
+      ()=>`${pk(VB.pre.fr)}, ${pk(['breathe','steady'])}. ${pk(['Group your shots','Reload and reset','Pick one target'])}, then ${pk(VB.verb.tac.slice(0,3))}.`,()=>`Haha, the wall's taking a beating, partner. ${pk(['Steady','Reset','Breathe'])} and go again.`],
+    sweat:[()=>`${pk(VB.pre.fr)}! ${v.you} is ${pk(VB.mod.hype)}! ${pk(['Keep cooking','Carry us','They are diffed','Do not stop'])}!`,()=>`${pk(['Yo boss','Go','Move'])}, you're ${VP.sweat()}! ${pk(['They are panicking','Lobby is diffed','Clear'])}.`,
+      ()=>`${pk(VB.pre.fr)}, ${pk(['massive','absolute','god-tier'])} plays from ${v.you}. ${pk(['I am right behind you','Push, I cover','Ready'])}.`],
+    feed:[()=>`${pk(VB.pre.fr)}, regroup with us at ${v.base}. ${pk(['We bounce back','Stick with the squad','Do not trade alone','Backup is on the way'])}.`,
+      ()=>`${pk(VB.pre.fr)}, slow down, you're losing a lot. ${pk(['Group up','Wait for backup','Let us push together'])}.`,()=>`${pk(['Steady','Hang on'])}, ${v.you}. ${pk(['Medic is coming','We hold together','Stay on me'])}. ${pk(VB.pl.tac)}.`],
+    callout:[()=>`${pk(VB.pre.fr)}, ${pk(VB.verb.tac)} ${pk(['left','right','east','west','up the road'])}. ${pk(VB.pl.tac)}.`,()=>`${pk(VB.pre.fr)}, ${pk(['tanks','infantry','helis'])} on ${pk(['our','your'])} ${pk(['spawn','flank','base'])}. ${pk(['Ready','Now','Hard'])}.`],
+    panic:[()=>`${pk(VB.pre.panic)}! ${pk(['They are pushing','Tanks at','Getting flanked at'])} ${v.base}! ${pk(['Backup','Medic','Help'])}!`,()=>`${pk(VB.pre.panic)}, ${pk(['my armor','my shield'])} is ${pk(['cooked','wrecked'])}! ${pk(['Need backup','Pull back','Cover me'])} ${pk(['now','fast'])}!`],
+    insult:[()=>`${pk(VB.pre.fr)}, wrong target. Save it for the ${pk(['enemy','other team'])}.`,()=>`${pk(['Easy','Steady'])}, we're on the same squad. ${pk(['Focus up','Eyes on them'])}.`],
+    def:[()=>`${pk(VB.pre.fr)}. ${pk(['Ready when you are','On you','Standing by'])}.`]};
+  const set=(rel==='enemy'?E:F)[kind];if(!set)return null;return pick(set)()}
+// swearing filter (Settings > Bot language)
+function botClean(t){if(!UIS.set||UIS.set.swear!==false)return t;const map={fucking:'freaking',fuck:'frick',shit:'shoot',damn:'dang',ass:'butt'};
+  return t.replace(/\b(fucking|fuck|shit|damn|ass)\b/gi,w=>{const r=map[w.toLowerCase()];return w[0]===w[0].toUpperCase()?r[0].toUpperCase()+r.slice(1):r})}
+// ---------- tracking how the player is playing ----------
+const BH={};
+function behaviorOf(h){const T=G.T[h];const now=G.t;const b=BH[h]||(BH[h]={snaps:[],state:'normal',at:0,moveF:[]});
+  const mv=G.u.filter(u=>!u.dead&&u.team===h);b.moveF.push(mv.length?mv.filter(u=>u.moving).length/mv.length:1);if(b.moveF.length>9)b.moveF.shift();
+  b.snaps.push({t:now,k:T.kills,l:T.st.lostU,s:T.st.shots||0,hi:T.st.hits||0,c:T.st.capZ});while(b.snaps.length>2&&now-b.snaps[0].t>90)b.snaps.shift();
+  const a=b.snaps[0],z=b.snaps[b.snaps.length-1];const dk=z.k-a.k,dl=z.l-a.l,ds=z.s-a.s,dh=z.hi-a.hi,dc=z.c-a.c;const avgMove=b.moveF.reduce((x,y)=>x+y,0)/b.moveF.length;
+  let st='normal';if(dk>=25||dc>=2)st='sweat';else if(dl>=20&&dl>dk*1.5)st='feed';else if(ds>=80&&dh/ds<.4)st='miss';else if(G.t-(G.warT||0)>120&&avgMove<.12&&dc===0&&mv.length>5)st='camp';
+  b.state=st;return st}
+function botMoodOf(b){const T=G.T[b];if(T.have.zones<=1||(T.have.inf+T.have.veh+T.have.air)<6)return 'panic';const st=standings();return st[0]&&st[0].t===b?'winning':st[st.length-1]&&st[st.length-1].t===b?'losing':'mid'}
+// called from talkTick: bots react to the player's behavior and their own situation
+function vocabTick(){const hum=G.T.filter(T=>T.human&&!T.elim);if(!hum.length)return false;const h=pick(hum).i;const st=behaviorOf(h);
+  const bots=G.T.filter(T=>!T.human&&!T.elim);if(!bots.length)return false;
+  const key=h+':'+st;BH.cd=BH.cd||{};
+  // a bot in trouble panics (teammates on team chat, enemies grumble in all chat)
+  const scared=bots.find(b=>botMoodOf(b.i)==='panic'&&!(BH.cd['p'+b.i]>G.t));
+  if(scared&&Math.random()<.5){BH.cd['p'+scared.i]=G.t+90;const rel=tkRel(scared.i,h);const line=assemble({kind:rel==='enemy'?'losing':'panic',rel,per:scared.persona,h,base:(tkNear(scared.i)||{name:'base'}).name});if(line){sayAs(scared.i,botClean(line),rel==='enemy'?'all':'team');return true}}
+  if(st==='normal'||(BH.cd[key]&&G.t<BH.cd[key])){if(Math.random()<.25){const mate=bots.find(b=>ally(b.i,h));if(mate){const line=assemble({kind:'callout',rel:'mate',per:mate.persona,h});if(line){sayAs(mate.i,botClean(line),'team');return true}}}return false}
+  BH.cd[key]=G.t+75;
+  // the enemy most affected comments in all chat, a teammate on team chat
+  const enemies=bots.filter(b=>!ally(b.i,h)),mates=bots.filter(b=>ally(b.i,h));
+  const enemy=enemies.sort((a,b)=>(TK.dmg[h+'>'+b.i]||0)-(TK.dmg[h+'>'+a.i]||0))[0];const mate=mates.length?pick(mates):null;
+  let did=false;
+  if(enemy){const line=assemble({kind:st,rel:'enemy',per:enemy.persona,h,base:(tkNear(enemy.i)||{name:'base'}).name,mood:CHAT_MEM[enemy.i+'_'+h]>=2?'angry':null});if(line){sayAs(enemy.i,botClean(line),'all');did=true}}
+  if(mate&&Math.random()<.7){const line=assemble({kind:st,rel:'mate',per:mate.persona,h,base:(tkNear(h)||tkNear(mate.i)||{name:'base'}).name});if(line){sayAs(mate.i,botClean(line),'team',2200);did=true}}
+  return did}
 
 // ================= UI =================
 const $=id=>document.getElementById(id);
@@ -3956,7 +4065,7 @@ function uiEvent(e){trainEvent(e);
   if(e.e==='result'&&e.team===ME&&!UIS.ended){if(e.w==='out'){banner('Your army is out','Your allies fight on. You can keep watching.',5,'alert');return}UIS.ended=1;SAVE.record(e.w);setTimeout(()=>showEnd(e.w),2500)}
   if(e.e==='over'&&!UIS.ended){UIS.ended=1;const r=G.T[ME].result||e.w;SAVE.record(r==='win'?'win':'lose');setTimeout(()=>showEnd(r==='win'?'win':'lose'),2500)}
   if(e.e==='elim'&&e.t!==ME)banner(TEAMS[e.t].name+' eliminated','',3,'');}
-function showEnd(w,why){setTimeout(()=>{const L=SAVE.last;if(!L)return;const p=P_();$('endBody').insertAdjacentHTML('afterbegin',`<div class="endprog">${rankBadge(p.rp,48)}<div><b>+${L.xp} XP</b>${L.ups?` and <b>level up to ${L.lvl}!</b>`:`, level ${L.lvl}`}${G.ranked?`<br>${L.rpd>=0?'+':''}${L.rpd} rank points, now ${RANKS[rankOf(p.rp)].n} with ${p.rp}`:''}${L.chxp?'<br>Challenges complete: +'+L.chxp+' XP':''}${L.cards&&L.cards.length?'<br>New calling card: '+L.cards.join(', '):''}${p.newBadges&&p.newBadges.length?'<br>New badge: '+p.newBadges.map(b=>BADGES[b].n).join(', '):''}</div></div>`);p.newBadges=[]},50);$('endT').textContent=w==='win'?'Victory':'Defeat';$('endP').textContent=why||(w==='win'?(G.mode==='pve'&&humans().length>1?'You and your allies wiped out every AI army.':'Every rival army has been wiped out or lost all its bases. The valley is yours.'):'Every one of your bases has been captured or destroyed.');
+function showEnd(w,why){setTimeout(()=>{const L=SAVE.last;if(!L)return;const p=P_();$('endBody').insertAdjacentHTML('afterbegin',`<div class="endprog">${rankBadge(p.rp,48)}<div><b>+${L.xp} XP</b>${L.ups?` and <b>level up to ${L.lvl}!</b>`:`, level ${L.lvl}`}${G.ranked?`<br>${L.rpd>=0?'+':''}${L.rpd} rank points${L.rpB?(L.rpB.loss?' (loss penalty for '+RANKS[rankOf(p.rp-L.rpd)].n+')':' ('+L.rpB.kills+' kills, '+L.rpB.caps+' captures, '+L.rpB.blds+' buildings, '+L.rpB.win+' win)'):''}, now ${RANKS[rankOf(p.rp)].n} with ${p.rp}`:''}${L.chxp?'<br>Challenges complete: +'+L.chxp+' XP':''}${L.cards&&L.cards.length?'<br>New calling card: '+L.cards.join(', '):''}${p.newBadges&&p.newBadges.length?'<br>New badge: '+p.newBadges.map(b=>BADGES[b].n).join(', '):''}</div></div>`);p.newBadges=[]},50);$('endT').textContent=w==='win'?'Victory':'Defeat';$('endP').textContent=why||(w==='win'?(G.mode==='pve'&&humans().length>1?'You and your allies wiped out every AI army.':'Every rival army has been wiped out or lost all its bases. The valley is yours.'):'Every one of your bases has been captured or destroyed.');
   $('endBody').innerHTML=assetsHTML();$('end').hidden=false}
 
 // ---------- help ----------
@@ -3975,7 +4084,7 @@ function helpHTML(){return `<div style="columns:2 280px;column-gap:28px;font-siz
 <p><b>Talk.</b> Open Talk to deal with the AI armies: ask for a truce, pay for one, propose an alliance, send gifts, ask allies to attack a base, or demand surrender from an army down to its last bases. Each leader has a personality. Honorable ones keep their word; greedy ones want money and may turn on you; ruthless ones betray allies who look weak. Take their land and they will demand it back, and refusing can end your deal. An army down to its last base may offer to surrender and join you, depending on how you treated it.</p>
 <p><b>Oil derricks.</b> Cost $5,000 and pump +$10 every second. Build them in the Build menu.</p>
 <p><b>Levels and unlocks.</b> You earn XP from every match: winning, kills, captures and buildings destroyed. New units, buildings and missiles unlock as you level from 1 to 100. Difficulty sets the level of the AI armies: Recruit bots are level 1 to 10, Veteran 15 to 50, Warlord 60 to 100, and bots only use what their level unlocks.</p>
-<p><b>Ranked.</b> Six ranks from Bronze to Champion. Ranked comes in free-for-all (solo only), 2v2 and 3v3, played against ranked bots near your rank, with a friend or bot teammates. 2v2 uses a small map and 3v3 a medium one. Bots climb the leaderboard too.</p>
+<p><b>Ranked.</b> Six ranks from Bronze to Champion. Win and you earn 1 point per kill (up to 400), 25 per base captured, 3 per building destroyed and 150 for the win. Lose or leave and you earn nothing and lose 50 points in Bronze, 100 in Silver, 150 in Gold, 200 in Platinum, 300 in Diamond and 400 in Champion. Bots follow the same rules. Ranked comes in free-for-all (solo only), 2v2 and 3v3, played against ranked bots near your rank, with a friend or bot teammates. 2v2 uses a small map and 3v3 a medium one. Bots climb the leaderboard too.</p>
 <p><b>Paratroopers.</b> From the Strikes menu (P), a transport plane drops 20 soldiers on any spot. AA can shoot the plane down before the jump, and it has a two-minute cooldown.</p>
 <p><b>Challenges and calling cards.</b> Three random challenges appear every 8 hours on the start screen. Finish them for XP and new calling cards. Click your profile card to see your stats and pick a calling card. Click any name in chat or on the leaderboard to see that player's rank, record and past seasons.</p>
 <p><b>Skill tree.</b> Spend one point per level on small permanent bonuses: income, build speed, unit and building health, capture and repair speed, missile reload, AA and artillery damage. Each skill tops out at 5 ranks.</p>
@@ -3985,6 +4094,7 @@ function helpHTML(){return `<div style="columns:2 280px;column-gap:28px;font-siz
 <p><b>Walls and barriers.</b> In Build, pick a concrete wall ($500 per 100 m), Jersey barrier ($300) or tank blockers ($200), then click a start point and an end point near one of your bases. Walls and barriers stop enemy infantry and vehicles; tank blockers stop only vehicles. Your own units pass through as if through gates. Enemies that get stuck against them start shooting their way through.</p>
 <p><b>Friends.</b> In Multiplayer, share your 6-letter friend code and add your friends' codes. You can see when they are online or hosting, join their match, or invite them to yours.</p>
 <p><b>Saving.</b> Your level, rank, badges, cards and friends save on every change and when you leave a match (you still get XP for what you did). Updating the game keeps your progress. To move it between claude.ai, itch.io and the Windows app, use Backup code in Settings.</p>
+<p><b>Bot chatter (Advanced Vocab V2).</b> Bots build their lines on the fly from slang, tactical callouts and trash talk, and react to how you play: camping, missing shots, sweating the lobby or feeding units. Enemies roast you in all chat; teammates hype you up, give tips or ask you to regroup in team chat. Teammates never argue with what you type in all chat. Settings has a Clean option that removes swearing.</p>
 <p><b>Chat.</b> Press Enter to chat. Bots answer back, some salty, some chill. Switch between All and Team chat. Friends in your match see your messages.</p>
 <p><b>Production.</b> Units appear at a random barracks, factory or helipad you own, including captured ones. Each extra building of a type adds 20% build speed, up to 2.2x. Each extra missile silo cuts missile reload times.</p>
 <p><b>Repairs.</b> Train combat engineers at a barracks. Select one and right click a damaged building or vehicle, or use the repair button on it. One engineer works on one target at a time, and repairs take a while. Idle engineers fix nearby damage on their own.</p>
@@ -4108,16 +4218,16 @@ function openSkills(){const b=$('skBody');b.innerHTML=skillHTML();$('skm').hidde
   if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',go);else go()})();
 
 // ---------- pause menu, settings, players ----------
-const SET_DEF={bright:1,shake:1,master:.85,fx:1,amb:1,ui:1};
+const SET_DEF={bright:1,shake:1,master:.85,fx:1,amb:1,ui:1,swear:true};
 function loadSettings(){UIS.set=Object.assign({},SET_DEF,SAVE.lsGet('settings')||{});applySettings()}
 function applySettings(){const s=UIS.set;window.IH_BRIGHT=s.bright;window.IH_SHAKE=s.shake;AU.vol=s.master;AU.fxV=s.fx;AU.ambV=s.amb;AU.uiV=s.ui;if(AU.master&&AU.on)AU.master.gain.setTargetAtTime(s.master,AU.ctx.currentTime,.05)}
 function settingsHTML(){const s=UIS.set;const row=(k,n,d,min,max,step)=>`<div class="grow"><div><b>${n}</b><small>${d}</small></div><div class="sl"><input type="range" min="${min}" max="${max}" step="${step}" value="${s[k]}" data-set="${k}" aria-label="${n}"><span>${Math.round(s[k]*100)}%</span></div></div>`;
   return row('bright','Brightness','How bright the battlefield looks',.5,1.6,.05)+row('shake','Camera shake','Screen shake from explosions',0,1.5,.05)+row('master','Master volume','Everything you hear',0,1,.05)+
     row('fx','Effects volume','Guns, explosions and vehicles',0,1.5,.05)+row('amb','Ambience volume','Wind, birds, fires and distant battle',0,1.5,.05)+row('ui','Interface volume','Clicks and alerts',0,1.5,.05)+
-    `<div class="grow"><div><b>Backup code</b><small>Copy this to move your level, rank, badges and friends to another device or to the Windows or itch.io version.</small></div><span><button class="mini-btn2" id="bkCopy">Copy code</button> <button class="mini-btn2" id="bkPaste">Restore</button></span></div><div id="bkArea"></div><div class="grow"><div><b>Sound check</b><small id="sndState">${audioStatus()}</small></div><button class="mini-btn2" id="sndTest">Play test sound</button></div><div class="mrow"><button class="mini-btn2" id="setGfx">Graphics settings</button><button class="mini-btn2" id="setReset">Reset to defaults</button></div>`}
+    `<div class="grow"><div><b>Bot language</b><small>Uncensored lets bots swear when they trash talk. Clean swaps the swear words out.</small></div><button class="tog ${s.swear!==false?'on':''}" id="swTog">${s.swear!==false?'Uncensored':'Clean'}</button></div><div class="grow"><div><b>Backup code</b><small>Copy this to move your level, rank, badges and friends to another device or to the Windows or itch.io version.</small></div><span><button class="mini-btn2" id="bkCopy">Copy code</button> <button class="mini-btn2" id="bkPaste">Restore</button></span></div><div id="bkArea"></div><div class="grow"><div><b>Sound check</b><small id="sndState">${audioStatus()}</small></div><button class="mini-btn2" id="sndTest">Play test sound</button></div><div class="mrow"><button class="mini-btn2" id="setGfx">Graphics settings</button><button class="mini-btn2" id="setReset">Reset to defaults</button></div>`}
 function openSettings(){const b=$('setBody');b.innerHTML=settingsHTML();$('setm').hidden=false;
   b.querySelectorAll('[data-set]').forEach(i=>i.oninput=()=>{UIS.set[i.dataset.set]=+i.value;i.nextElementSibling.textContent=Math.round(i.value*100)+'%';applySettings();SAVE.lsSet('settings',UIS.set)});
-  $('setGfx').onclick=()=>{renderGfx();$('gfx').hidden=false};$('sndTest').onclick=testSound;
+  $('setGfx').onclick=()=>{renderGfx();$('gfx').hidden=false};$('sndTest').onclick=testSound;$('swTog').onclick=()=>{UIS.set.swear=UIS.set.swear===false;SAVE.lsSet('settings',UIS.set);openSettings()};
   $('bkCopy').onclick=()=>{const c=backupCode();try{navigator.clipboard.writeText(c);$('bkCopy').textContent='Copied'}catch(e){}$('bkArea').innerHTML='<textarea class="tin" style="width:100%;height:70px" readonly>'+c+'</textarea>'};
   $('bkPaste').onclick=()=>{$('bkArea').innerHTML='<textarea id="bkIn" class="tin" style="width:100%;height:70px" placeholder="Paste your backup code here"></textarea><button class="mini-btn2" id="bkGo">Restore progress</button>';$('bkIn').onkeydown=e=>e.stopPropagation();$('bkGo').onclick=()=>{const r=restoreCode($('bkIn').value);banner('Backup',r==='ok'?'Progress restored':r,2);if(r==='ok')AU.ui('capture')}};$('setReset').onclick=()=>{UIS.set=Object.assign({},SET_DEF);SAVE.lsSet('settings',UIS.set);applySettings();openSettings()}}
 function openMenu(){$('menu').hidden=false;if(started&&NET.role!=='client'&&!G.paused&&!G.over){G.paused=true;UIS.menuPaused=1}AU.ui('click')}

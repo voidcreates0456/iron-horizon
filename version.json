@@ -1,11 +1,11 @@
 {
- "version": "3.7",
+ "version": "3.8",
  "notes": [
-  "Bots now know if you are a teammate, an ally or an enemy and talk to you that way",
-  "Bots remember the conversation, ask follow-up questions and understand yes or no answers",
-  "Bots comment on the battle: bases taken, kill counts, and ask for help when attacked",
-  "Bots chat with each other, and threats in all chat go to your enemies",
-  "Much bigger vocabulary for all four bot personalities"
+  "Ranked rework: win to earn 1 point per kill (up to 400), 25 per capture, 3 per building and 150 for the win",
+  "Losing or leaving ranked earns nothing and costs 50 to 400 points depending on your rank; bots follow the same rules",
+  "Advanced Vocab V2: bots build their trash talk and callouts on the fly and react to camping, missing, sweating and feeding",
+  "Teammates no longer argue with what you type in all chat",
+  "New Settings option: Bot language Uncensored or Clean"
  ],
  "files": [
   "index.html",
