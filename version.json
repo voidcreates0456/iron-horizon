@@ -1,16 +1,14 @@
 {
- "version": "3.9.1",
+ "version": "4.0",
  "notes": [
-  "3.9.1: Pressing Enter to chat now shows the chat even if you hid it",
-  "3.9.1: Small fixes and launcher update test",
-  "From 3.9: New missile MIRV (I) splits into six heavy warheads over the target",
-  "From 3.9: New missile SEAD (G) hunts enemy AA, C-RAM, interceptor sites and radar",
-  "From 3.9: New Heavy gunship helicopter with long-range anti-tank rockets (level 24)",
-  "From 3.9: Wall snapping to wall ends, 15 degree angles and 10 m lengths. Shift chains, Alt places freely",
-  "From 3.9: Destroyed walls clear away after one minute",
-  "From 3.9: Ranked wins give 250 points for the win",
-  "From 3.9: Higher-ranked bots are stronger",
-  "From 3.9: Arguing with a bot escalates and ends with it muting you"
+  "Units only capture the base you assigned them to, and stop instead of walking into a base your ally already took",
+  "Every attack group now picks its own target, fights for it, captures it, then moves on",
+  "Conversation V3: bots answer why they are attacking you, whether they need help, where to attack, if your team is winning, their money and level, and follow you into a push",
+  "Bots no longer reply to a plain ok, notice when you repeat yourself, and warm up to players who are nice to them",
+  "Removed the 'uninstall life' line",
+  "Fixed rank badges: Reached Gold, Diamond and Champion only appear once you really reach those ranks",
+  "New collectible: 28 titles to equip under your name, shown on your profile and in lobbies",
+  "24 new calling cards, most of them animated"
  ],
  "files": [
   "index.html",
