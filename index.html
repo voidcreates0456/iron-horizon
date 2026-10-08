@@ -323,6 +323,58 @@ body.pre #chatWrap{display:none}
 .cc-scan>*,.cc-spin>*{position:relative;z-index:1}
 .ccard.lock{animation:none!important;filter:grayscale(1) brightness(.55)!important}.ccard.lock::before,.ccard.lock::after{display:none!important}.ccard.lock .anim-dot{display:none}
 #pfm .lh{color:var(--ink);margin-top:14px}#pfm .lnote{color:var(--ink2)}
+
+@property --pa{syntax:'<angle>';inherits:false;initial-value:0deg}
+#rkIntro{position:fixed;inset:0;z-index:65;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(22,26,34,.86),rgba(3,4,6,.96));color:#fff;transition:opacity .45s;cursor:pointer;overflow:hidden}
+#rkIntro[hidden]{display:none}#rkIntro.out{opacity:0}
+.rk-word{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);overflow:hidden;font:800 clamp(64px,13vw,160px)/1.05 var(--fd);letter-spacing:.08em;animation:rkWord 2s cubic-bezier(.2,.9,.3,1) both;padding:.35em .6em;white-space:nowrap}
+.rk-word span{color:#ffe9a8;text-shadow:0 3px 0 #b07a12,0 6px 0 #6b4508,0 0 40px rgba(255,190,80,.65)}
+.rk-word i{position:absolute;top:0;bottom:0;width:22%;left:0;background:linear-gradient(100deg,transparent,rgba(255,255,255,.95),transparent);mix-blend-mode:screen;-webkit-mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);transform:translateX(-160%) skewX(-20deg);animation:rkGlint 1s .45s ease-in-out both}
+@keyframes rkWord{0%{opacity:0;transform:translate(-50%,-50%) scale(1.7)}22%{opacity:1;transform:translate(-50%,-50%) scale(1)}78%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.85)}}
+@keyframes rkGlint{to{transform:translateX(560%) skewX(-20deg)}}
+.rk-sub{position:absolute;top:calc(50% + clamp(40px,8vw,95px));left:0;right:0;text-align:center;font:700 16px var(--f);letter-spacing:.3em;text-transform:uppercase;color:#e8cf8f;animation:rkSub 2s both}
+@keyframes rkSub{0%,15%{opacity:0;transform:translateY(10px)}30%,78%{opacity:1;transform:none}100%{opacity:0}}
+.rk-vs{display:flex;align-items:center;justify-content:center;gap:3.5vw;flex-wrap:wrap;opacity:0;animation:rkFade .3s 1.6s both;padding:0 16px}
+@keyframes rkFade{to{opacity:1}}
+.rk-side{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;position:relative;padding-top:26px}
+.rk-side.left::before,.rk-side.right::before{position:absolute;top:0;left:0;right:0;text-align:center;font:800 13px var(--f);letter-spacing:.25em}
+.rk-side.left::before{content:'YOUR TEAM';color:#8fc7ff}.rk-side.right::before{content:'ENEMIES';color:#ff8a7a}
+.rkp{display:flex;flex-direction:column;align-items:center;width:132px;text-align:center;padding:14px 8px 12px;border-radius:16px;opacity:0;animation:rkIn .6s cubic-bezier(.2,.9,.3,1.25) both;
+  background:linear-gradient(180deg,rgba(77,142,240,.28),rgba(0,0,0,.25));border:1px solid rgba(130,180,255,.45);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.rkp.left{--dx:-80px}.rkp.right{--dx:80px;background:linear-gradient(180deg,rgba(229,72,78,.28),rgba(0,0,0,.25));border-color:rgba(255,130,120,.45)}
+@keyframes rkIn{from{opacity:0;transform:translateX(var(--dx)) scale(.7)}to{opacity:1;transform:none}}
+.rkb svg{animation:ihGlow 3s ease-in-out infinite}.rkr{font-weight:800;color:#e8cf8f;font-size:13px;margin:6px 0 4px;letter-spacing:.04em}
+.rkp b{font:800 18px/1.1 var(--fd);word-break:break-word}.rkp small{color:#c9c5b8;font-size:12px}.rkp em{font-style:normal;font-size:10.5px;font-weight:800;color:#e8cf8f;letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
+.rk-mid{font:800 64px var(--fd);color:#ff6d60;text-shadow:0 0 30px rgba(255,80,60,.7);animation:rkPulse 1.3s 2.2s ease-in-out infinite}
+@keyframes rkPulse{50%{transform:scale(1.12);text-shadow:0 0 50px rgba(255,80,60,.95)}}
+.rk-tap{position:absolute;bottom:5vh;opacity:0;font-size:13px;color:#bdb9aa;animation:rkFade .4s 3s both}
+@media (max-width:820px){.rkp{width:104px;padding:10px 6px}.rk-mid{font-size:40px}}
+.t100{color:#e0384f;font-weight:800}#start .t100,#rkIntro .t100{color:#ff9a9a;text-shadow:0 0 10px rgba(255,107,74,.5)}
+.mmline{display:block;font-size:12.5px;color:#bdb9aa;margin-top:4px}
+.has-ccb{position:relative}.ccard.has-ccb{padding-right:58px}.pcard.has-ccb{padding-right:70px}.ph.has-ccb{padding-right:76px}
+.has-ccb>.ccb{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:2;display:flex;flex-direction:column;align-items:center;pointer-events:none}
+.ccb em{font:800 9px var(--f);letter-spacing:.08em;color:#fff4c2;font-style:normal;text-shadow:0 0 6px #ff6b4a;margin-top:-2px}
+.ccb.crazy svg{animation:ccbFloat 2.2s ease-in-out infinite,ccbGlow 1.5s ease-in-out infinite}
+@keyframes ccbFloat{50%{transform:translateY(-4px) rotate(-7deg) scale(1.1)}}@keyframes ccbGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(255,255,255,.6))}50%{filter:drop-shadow(0 0 12px #fff) drop-shadow(0 0 22px #ffd66b)}}
+.ccard.lock .ccb{filter:grayscale(1);opacity:.6}.ccard.lock .ccb svg{animation:none}
+.pfxw{position:relative;border-radius:20px;max-width:520px;margin:12px 0 10px}.pfxw.pfx-space,.pfxw.pfx-electric,.pfxw.pfx-fire,.pfxw.pfx-missiles,.pfxw.pfx-ranks{max-width:534px}.pfxw.pfx-prof{margin:0;max-width:none}
+.pfxw>.pcard{margin:0}.pfxw>*{position:relative;z-index:1}
+.pfxw.pfx-space,.pfxw.pfx-electric,.pfxw.pfx-fire,.pfxw.pfx-missiles,.pfxw.pfx-ranks{padding:7px}
+.pfxw.pfx-space::before,.pfxw.pfx-electric::before,.pfxw.pfx-fire::before,.pfxw.pfx-missiles::before,.pfxw.pfx-ranks::before{content:'';position:absolute;inset:-6px;border-radius:26px;z-index:0;pointer-events:none}
+.pfxsw{display:block;position:relative;height:14px;border-radius:7px;margin-bottom:5px;overflow:hidden;min-width:96px}.pfxsw::before{content:'';position:absolute;inset:0}.pfxsw.pfx-none::before{background:var(--line)}
+.pfx-space::before{background:radial-gradient(circle at 20% 30%,#fff 0 1px,transparent 1.6px),radial-gradient(circle at 70% 60%,#cbd5ff 0 1.3px,transparent 1.9px),radial-gradient(circle at 45% 85%,#fff 0 .9px,transparent 1.4px),linear-gradient(135deg,#090d2b,#3b1d6e 50%,#0b2a4a);
+  background-size:60px 60px,80px 80px,50px 50px,100% 100%;animation:pfxDrift 9s linear infinite;box-shadow:0 0 22px rgba(140,110,255,.55)}
+@keyframes pfxDrift{to{background-position:60px 30px,-80px 40px,50px -50px,0 0}}
+.pfx-electric::before{background:conic-gradient(from var(--pa),#0ff,transparent 14%,#7dd3fc 28%,transparent 42%,#fff 57%,transparent 70%,#38bdf8 86%,#0ff);animation:pfxSpin 1.3s linear infinite,pfxFlick .8s steps(2) infinite;box-shadow:0 0 18px #38bdf8,0 0 42px rgba(56,189,248,.5)}
+@keyframes pfxSpin{to{--pa:360deg}}@keyframes pfxFlick{50%{opacity:.72}}
+.pfx-fire::before{background:radial-gradient(circle at 50% 100%,rgba(255,234,0,.95) 0 16%,transparent 42%),radial-gradient(circle at 25% 100%,rgba(255,120,0,.9) 0 14%,transparent 36%),linear-gradient(0deg,#ff3d00,#a10f00 60%,#3a0000);
+  background-size:38px 58px,26px 44px,100% 100%;animation:pfxFire .8s linear infinite;box-shadow:0 0 24px rgba(255,90,0,.75),0 -8px 34px rgba(255,180,0,.45)}
+@keyframes pfxFire{to{background-position:0 -58px,0 -44px,0 0}}
+.pfx-missiles::before{background:var(--pfx-missile),linear-gradient(135deg,#111827,#450a0a);background-size:64px 64px,100% 100%;animation:pfxMis 1.1s linear infinite;box-shadow:0 0 18px rgba(251,146,60,.6)}
+@keyframes pfxMis{to{background-position:64px -64px,0 0}}
+.pfx-ranks::before{background:var(--pfx-ranks),linear-gradient(180deg,#1a1405,#4a3205);background-size:80px 80px,100% 100%;animation:pfxRain 2.2s linear infinite;box-shadow:0 0 22px rgba(255,214,107,.55)}
+@keyframes pfxRain{to{background-position:0 80px,0 0}}
+.pfxbtn{min-width:120px}#pfm .x{z-index:5}.pfxw.pfx-prof{margin-right:70px}.rkcards .ccard{height:64px}
 #loading{position:fixed;inset:0;z-index:50;background:#1b211e;display:grid;place-items:center;color:#cfcbbd;font:600 18px var(--f)}
 @media (max-width:820px){
   .brand,.sep,#clock,#bHelp{display:none}
@@ -386,6 +438,7 @@ body.pre #top,body.pre #rail,body.pre #mini,body.pre #feed,body.pre #labels,body
   <div class="mrow"><button class="go" id="opSend">Send units</button><button class="mini-btn2" id="opAuto" title="No target needed">Send on auto-attack</button><button class="mini-btn2" id="opSel">Select them instead</button><button class="mini-btn2" id="opGroup">Save as group</button><span id="opMsg" class="opmsg"></span></div></div></div>
 <div id="groups"></div>
 <div id="dipPop" class="glass" hidden></div>
+<div id="rkIntro" hidden></div>
 <button id="sndBlock" class="glass" hidden>Sound is blocked by your browser. Tap here to turn it on.</button>
 <div id="streakFx" hidden>Kill streak! Double XP</div>
 <div id="chatWrap"><div id="chatLog"></div><div class="crow"><button id="chatHide" class="cch" title="Hide or show chat">Hide</button><button id="chatCh" class="cch">All</button><input id="chatIn" maxlength="160" placeholder="Press Enter to chat" aria-label="Chat message"><button id="chatBtn" class="cch" aria-label="Open chat">Chat</button></div></div>
@@ -419,7 +472,7 @@ body.pre #top,body.pre #rail,body.pre #mini,body.pre #feed,body.pre #labels,body
       <div class="lh">Unlocks</div><div id="unlocks"></div></div>
     <div id="tabMp" hidden><div class="netrow"><span class="netstat" id="netStat">Connecting</span></div><div id="lobby"></div><div id="friendsBox"></div></div>
     <div class="prof" id="prof"></div>
-    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 4.0 (captures, chat V3, titles, animated cards)</div>
+    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 4.1 (skill ladder, Top 100, ranked intro)</div>
     <div class="keys">
       <div><b>Left click or drag</b> select units</div><div><b>Right click</b> move or attack</div>
       <div><b>WASD or arrows</b> move camera</div><div><b>Wheel</b> zoom, <b>Q E</b> rotate, <b>R T</b> tilt</div>
@@ -2001,7 +2054,7 @@ function updateHave(){for(const T of G.T){const h={inf:0,veh:0,air:0,structs:{},
     for(const s of G.s)if(!s.dead&&s.team===T.i){h.structs[s.t]=(h.structs[s.t]||0)+1;h.value+=ST[s.t].value}
     for(const z of G.Z)if(z.owner===T.i)h.zones++;h.value+=h.unitsV;T.have=h}}
 function checkEnd(){
-  for(const T of G.T){if(T.elim)continue;if(T.have.zones===0){T.elim=true;T.q={inf:[],veh:[],air:[]};emit({e:'elim',t:T.i});
+  for(const T of G.T){if(T.elim)continue;if(T.have.zones===0){T.elim=true;T.elimT=G.t;T.q={inf:[],veh:[],air:[]};emit({e:'elim',t:T.i});
     feedH(h=>h===T.i?['You have lost every base.','loss']:[T.name+' has been eliminated.',ally(h,T.i)?'loss':'good'])}}
   const alive=G.T.filter(T=>!T.elim);const oneSide=alive.length>0&&alive.every(T=>ally(T.i,alive[0].i));
   for(const H of humans()){if(H.result==='win'||H.result==='lose')continue;
@@ -2342,9 +2395,9 @@ function aiThink(T,dt){
   A.zb=(A.zb===undefined?rnd(20,35):A.zb)-dt;if(A.zb<=0){A.zb=rnd(10,16)/D.ai;aiBuildZones(T)}
   A.crate=(A.crate||0)-dt;if(A.crate<=0&&G.crates.length){A.crate=8;aiCrates(T,mine)}
   if(G.phase==='prep')return;
-  A.strike-=dt;if(A.strike<=0){A.strike=rnd(16,30)/D.ai;aiStrike(T)}
-  A.support-=dt;if(A.support<=0){A.support=rnd(28,50)/D.ai;aiSupport(T)}
-  A.sat-=dt;if(A.sat<=0){A.sat=rnd(50,80)/D.ai;aiSat(T)}}
+  A.strike-=dt;if(A.strike<=0){A.strike=rnd(16,30)/D.ai/skillMul(T);aiStrike(T)}
+  A.support-=dt;if(A.support<=0){A.support=rnd(28,50)/D.ai/skillMul(T);aiSupport(T)}
+  A.sat-=dt;if(A.sat<=0){A.sat=rnd(50,80)/D.ai/skillMul(T);aiSat(T)}}
 
 function aiBuild(T,mine){
   const team=T.i;const cnt={};for(const u of mine)cnt[u.t]=(cnt[u.t]||0)+1;
@@ -2355,7 +2408,7 @@ function aiBuild(T,mine){
   const wt={gunship:(cnt.gunship||0)<3?.4:0,heavy:(cnt.heavy||0)<4?.5:0,mortar:.5,rifle:3.2,rocket:2,sniper:.6,tank:1.8,ifv:1.2,arty:.6,mlrs:.35,spaa:.6+enemyAir*.25,heli:(cnt.heli||0)<6?.75:0,drone:(cnt.drone||0)<2?3:0,engineer:(cnt.engineer||0)<3?1.4:0};
   if(enemyAir>3)wt.rocket+=1;
   for(let n=0;n<3;n++){
-    const opts=Object.keys(wt).filter(t=>{const d=UT[t];return wt[t]>0&&unlocked(team,t)&&T.q[d.cat].length<2&&d.cost<=T.money-reserve&&hasStruct(team,CATS[d.cat].bld)});
+    const opts=Object.keys(wt).filter(t=>{const d=UT[t];return wt[t]>0&&unlocked(team,t)&&T.q[d.cat].length<2+Math.round((T.skill||0)*3)&&d.cost<=T.money-reserve&&hasStruct(team,CATS[d.cat].bld)});
     if(!opts.length)return;let sum=0;for(const t of opts)sum+=wt[t];let r=Math.random()*sum,ch=opts[0];
     for(const t of opts){r-=wt[t];if(r<=0){ch=t;break}}
     queueUnit(team,ch);if(ch==='drone')wt.drone=0}}
@@ -2413,7 +2466,7 @@ function aiSquads(T,mine,dt){
 function nearestOwn(team,x,z){let b=null,bd=1e18;for(const zn of G.Z)if(zn.owner===team){const d=d2(x,z,zn.x,zn.z);if(d<bd){bd=d;b=zn}}return b}
 
 function aiStrike(T){const team=T.i;if(!hasStruct(team,'silo'))return;
-  let k='tac';const opts=MISSILES.filter(m=>m!=='tac'&&T.cd[m]<=0&&T.money>=SP[m].cost+300);if(opts.length&&Math.random()<.7)k=pick(opts);if(k==='icbm'&&Math.random()<.4)k='tac';if(k==='emp'&&!G.u.some(u=>!ally(u.team,team)&&UT[u.t].cat!=='inf'))k='tac';
+  let k='tac';const opts=MISSILES.filter(m=>m!=='tac'&&T.cd[m]<=0&&T.money>=SP[m].cost+300);if(opts.length&&Math.random()<.55+.45*(T.skill===undefined?.5:T.skill))k=pick(opts);if(k==='icbm'&&Math.random()<.4)k='tac';if(k==='emp'&&!G.u.some(u=>!ally(u.team,team)&&UT[u.t].cat!=='inf'))k='tac';
   if(strikeReady(team,k)!=='ok')return;
   const r=SP[k].r;let best=null,bs=0;
   let cand=G.s.filter(s=>!s.dead&&s.team>=0&&!ally(s.team,team)&&canSee(team,s));
@@ -2566,7 +2619,7 @@ function onMatchPeers(ch){const peers=ch.peers;
     else if(NET.role==='client'&&started)clientReceive(hp.presence)}}
 async function startHosted(){if(NET.role!=='host')return;const humansT=Object.values(NET.slots).map(s=>s.team);
   configureMatch(humansT,NET.mode,NET.diff);
-  if(RMODES[NET.mode]){const rp=P_().rp;const free=[];for(let t=0;t<NT;t++)if(!humansT.includes(t))free.push(t);NET.bots=pickBots(free.length,rp).map((b,i)=>({t:free[i],id:b.id,rp:b.rp,lvl:b.lvl,p:b.p,n:b.n}))}
+  if(RMODES[NET.mode]){const rp=P_().rp;const free=[];for(let t=0;t<NT;t++)if(!humansT.includes(t))free.push(t);NET.bots=pickBots(free.length,rp).map((b,i)=>({t:free[i],id:b.id,rp:b.rp,lvl:b.lvl,p:b.p,n:b.n,sk:b.sk}))}
   const lv={},skm={};for(const s of Object.values(NET.slots)){lv[s.team]=s.pf&&s.pf.lvl||P_().lvl;skm[s.team]=s.pf&&s.pf.sk||{}}
   setupArmies({skills:skm,lvls:lv,bots:NET.bots,sides:RMODES[NET.mode]&&RMODES[NET.mode].sides,ranked:!!RMODES[NET.mode],modeName:RMODES[NET.mode]&&RMODES[NET.mode].n});NET.armiesSet=1;
   hostLobbyPresence(true);NET.started=true;deployGame(NET.diff,'host')}
@@ -2675,7 +2728,7 @@ function clientReceive(pr){const st=pr.st;
   if(!st||st===NET.lastSt)return;NET.lastSt=st;
   if(st.k==='h')clientHuman(st.d);else if(st.k==='m')clientMeta(st.d);else if(st.k==='u')clientUnits(st.d,st.c);else if(st.k==='s')clientStructs(st.d)}
 function clientMeta(m){G.t=m.t;const wasPrep=G.phase==='prep';G.phase=m.ph?'war':'prep';if(wasPrep&&m.ph)G.warT=m.t;G.prepLeft=m.pl;G.tod=m.tod;G.wind.x=m.w[0];G.wind.z=m.w[1];G.speed=m.sp;G.paused=!!m.pa;
-  m.T.forEach((a,i)=>{const T=G.T[i];T.money=a[0];T.income=a[1];T.elim=!!a[2];T.kills=a[3];T.ai=!!a[4];Object.assign(T.st,{lostU:a[5],lostUV:a[6],lostS:a[7],lostSV:a[8],lostZ:a[9],capZ:a[10],destroyedV:a[11],mFired:a[12],mInter:a[13],intercepts:a[14]});T.result=a[15]||undefined});
+  m.T.forEach((a,i)=>{const T=G.T[i];T.money=a[0];T.income=a[1];if(a[2]&&!T.elim)T.elimT=G.t;T.elim=!!a[2];T.kills=a[3];T.ai=!!a[4];Object.assign(T.st,{lostU:a[5],lostUV:a[6],lostS:a[7],lostSV:a[8],lostZ:a[9],capZ:a[10],destroyedV:a[11],mFired:a[12],mInter:a[13],intercepts:a[14]});T.result=a[15]||undefined});
   m.Z.forEach((a,i)=>{const z=G.Z[i];z.owner=a[0];z.prog=new Array(NT).fill(0);if(a[1]>=0)z.prog[a[1]]=a[2];z.ruined=!!a[3];for(let t=0;t<NT;t++)z.rev[t]=!!(a[4]&(1<<t));z.contested=!!a[5]});
   for(const h of m.H)clientHuman(h);
   if(0)for(const h of m.H){const T=G.T[h[0]];for(const c in h[1])T.q[c]=h[1][c].map(q=>({t:q[0],left:q[1],tot:q[2],blocked:!!q[3]}));Object.assign(T.cd,h[2]);T.rally=h[3]?{x:h[3][0],z:h[3][1]}:null;
@@ -3077,7 +3130,7 @@ function progressAfterMatch(result){const p=P_(),T=G.T[ME],win=result==='win';co
   p.stats.kills+=T.kills;p.stats.caps+=T.st.capZ;p.stats.bdest+=T.st.killsS;p.stats.missiles+=T.st.mFired;if(win)p.stats.wins++;
   if(G.dip)p.stats.allies+=G.T.filter(o=>o.i!==ME&&G.ally[o.i][ME]&&o.ai).length;
   const xp=Math.round((win?400:150)+(T.st.bonusXp||0)+T.kills*2+T.st.capZ*20+T.st.killsS*5+Math.min(G.t,3600)/12)*(rk?1.5:1);const lvBefore=p.lvl;const ups=gainXP(p,xp);
-  let rpd=0,rpB=null;if(rk){const r=rankedPoints(T,win,p.rp);rpd=r.total;rpB=r;p.rp=Math.max(0,p.rp+rpd);
+  let rpd=0,rpB=null;if(rk){const r=rankedPoints(T,win,p.rp,result==='quit');rpd=r.total;rpB=r;p.rp=Math.max(0,p.rp+rpd);
     if(win){p.rw++;p.rstreak++}else{p.rl++;p.rstreak=0}
     const b=botRoster();for(const o of G.T){if(o.botId===undefined)continue;const bt=b.find(x=>x.id===o.botId);if(!bt)continue;const ow=ally(o.i,ME)?win:!win&&!o.elim;
       botLadderResult(bt,ow,o.kills,o.st.capZ,o.st.killsS);if(ow)bt.w++;else bt.l++;bt.k=(bt.k||0)+o.kills}
@@ -3099,15 +3152,15 @@ function unlockListHTML(){const p=P_();const items=Object.entries(UNLOCK).filter
 // applied right after newGame(): levels per army, names for ranked bots, team sides
 function setupArmies(cfg){const p=P_();const hum=G.T.filter(T=>T.human);
   for(const T of G.T){if(T.human){T.lvl=T.i===ME?p.lvl:(cfg.lvls&&cfg.lvls[T.i])||p.lvl;applySkills(T,T.i===ME?(p.skills||{}):(cfg.skills&&cfg.skills[T.i])||{});continue}
-    const [a,b]=DIFF_LVL[G.diff||0];T.lvl=Math.round(a+Math.random()*(b-a));T.dmul=.7+.65*(T.lvl/100)}
-  if(cfg.bots)cfg.bots.forEach(bt=>{const T=G.T[bt.t];if(!T)return;T.botId=bt.id;T.botRp=bt.rp;T.lvl=bt.lvl;T.dmul=.7+.45*(bt.lvl/100)+.35*(rankOf(bt.rp)/5);T.persona=bt.p;TEAMS[bt.t].name=bt.n;T.name=bt.n});
+    const [a,b]=DIFF_LVL[G.diff||0];T.lvl=Math.round(a+Math.random()*(b-a));T.skill=clamp([.25,.5,.8][G.diff||0]+rnd(-.1,.1),0,1);T.dmul=.7+.65*(T.lvl/100)}
+  if(cfg.bots)cfg.bots.forEach(bt=>{const T=G.T[bt.t];if(!T)return;T.botId=bt.id;T.botRp=bt.rp;T.lvl=bt.lvl;T.skill=bt.sk===undefined?.5:bt.sk;T.dmul=.7+.25*(bt.lvl/100)+.55*T.skill;T.persona=bt.p;TEAMS[bt.t].name=bt.n;T.name=bt.n});
   for(const T of G.T)if(!T.human&&!T.persona)T.persona=pick(PERSONAS);
   for(const T of G.T)if(!T.human)applySkills(T,botSkills(T.lvl||1));
   if(cfg.sides){G.side=cfg.sides;G.ally=Array.from({length:NT},(_,a)=>Array.from({length:NT},(_,b)=>cfg.sides[a]===cfg.sides[b]))}
   G.ranked=!!cfg.ranked;G.modeName=cfg.modeName||null}
 const RMODES={rffa:{n:'Free-for-all',nt:5,w:4400,sides:null},r2v2:{n:'2v2',nt:4,w:3000,sides:[0,0,1,1]},r3v3:{n:'3v3',nt:6,w:3700,sides:[0,0,0,1,1,1]}};
 function startRanked(mode){const p=P_(),M=RMODES[mode];const bots=pickBots(M.nt-1,p.rp);
-  const cfg={kind:'ranked',mode,seed:(Math.random()*1e9)|0,bots:bots.map((b,i)=>({t:i+1,id:b.id,rp:b.rp,lvl:b.lvl,p:b.p,n:b.n})),diff:p.rp>1800?2:p.rp>700?1:0};
+  const cfg={kind:'ranked',mode,seed:(Math.random()*1e9)|0,bots:bots.map((b,i)=>({t:i+1,id:b.id,rp:b.rp,lvl:b.lvl,p:b.p,n:b.n,sk:b.sk})),diff:rankOf(p.rp)>=4?2:rankOf(p.rp)>=2?1:0};
   rebootWith(cfg)}
 
 // ---------- chat ----------
@@ -3318,7 +3371,7 @@ function cardCmd(team,c){const T=G.T[team];T.cards=T.cards||{hand:[],locks:[],ac
     C.active=pickd;recomputeMods(T);if(T.human)feed('Battle cards active: '+pickd.map(cd=>BCARDS.find(x=>x.id===cd.id).n).join(', ')+'.',team,'good');return 'ok'}
   return 'Unknown'}
 // bots take their cards when the war starts; mostly common ones so they do not always get the best
-function botCards(){for(const T of G.T){if(T.human||T.cards&&T.cards.active)continue;const rk=T.botRp!==undefined?rankOf(T.botRp):Math.floor((T.lvl||1)/20);T.cards={hand:[0,1,2,3,4].map(()=>drawCard([.8-.07*rk,.18+.05*rk,.02+.02*rk]))};T.cards.active=T.cards.hand.sort(()=>Math.random()-.5).slice(0,3);recomputeMods(T)}}
+function botCards(){for(const T of G.T){if(T.human||T.cards&&T.cards.active)continue;const rk=Math.round((T.skill===undefined?.5:T.skill)*5);T.cards={hand:[0,1,2,3,4].map(()=>drawCard([.8-.07*rk,.18+.05*rk,.02+.02*rk]))};T.cards.active=T.cards.hand.sort(()=>Math.random()-.5).slice(0,3);recomputeMods(T)}}
 // ---------- kill streaks: 5 kills inside 10 seconds = double kill XP for the next 10 seconds ----------
 function streakKill(t){const T=G.T[t];T.stk=(T.stk||[]).filter(x=>G.t-x<10);T.stk.push(G.t);
   if(T.stkUntil>G.t){T.st.bonusXp=(T.st.bonusXp||0)+2}
@@ -4120,7 +4173,7 @@ function uiEvent(e){trainEvent(e);
   if(e.e==='result'&&e.team===ME&&!UIS.ended){if(e.w==='out'){banner('Your army is out','Your allies fight on. You can keep watching.',5,'alert');return}UIS.ended=1;SAVE.record(e.w);setTimeout(()=>showEnd(e.w),2500)}
   if(e.e==='over'&&!UIS.ended){UIS.ended=1;const r=G.T[ME].result||e.w;SAVE.record(r==='win'?'win':'lose');setTimeout(()=>showEnd(r==='win'?'win':'lose'),2500)}
   if(e.e==='elim'&&e.t!==ME)banner(TEAMS[e.t].name+' eliminated','',3,'');}
-function showEnd(w,why){setTimeout(()=>{const L=SAVE.last;if(!L)return;const p=P_();$('endBody').insertAdjacentHTML('afterbegin',`<div class="endprog">${rankBadge(p.rp,48)}<div><b>+${L.xp} XP</b>${L.ups?` and <b>level up to ${L.lvl}!</b>`:`, level ${L.lvl}`}${G.ranked?`<br>${L.rpd>=0?'+':''}${L.rpd} rank points${L.rpB?(L.rpB.loss?' (loss penalty for '+RANKS[rankOf(p.rp-L.rpd)].n+')':' ('+L.rpB.kills+' kills, '+L.rpB.caps+' captures, '+L.rpB.blds+' buildings, '+L.rpB.win+' win)'):''}, now ${RANKS[rankOf(p.rp)].n} with ${p.rp}`:''}${L.chxp?'<br>Challenges complete: +'+L.chxp+' XP':''}${L.cards&&L.cards.length?'<br>New calling card: '+L.cards.join(', '):''}${p.newCol&&p.newCol.length?'<br>Unlocked '+p.newCol.join(', '):''}${p.newBadges&&p.newBadges.length?'<br>New badge: '+p.newBadges.map(b=>BADGES[b].n).join(', '):''}</div></div>`);p.newBadges=[];p.newCol=[]},50);$('endT').textContent=w==='win'?'Victory':'Defeat';$('endP').textContent=why||(w==='win'?(G.mode==='pve'&&humans().length>1?'You and your allies wiped out every AI army.':'Every rival army has been wiped out or lost all its bases. The valley is yours.'):'Every one of your bases has been captured or destroyed.');
+function showEnd(w,why){setTimeout(()=>{const L=SAVE.last;if(!L)return;const p=P_();$('endBody').insertAdjacentHTML('afterbegin',`<div class="endprog">${rankBadge(p.rp,48)}<div><b>+${L.xp} XP</b>${L.ups?` and <b>level up to ${L.lvl}!</b>`:`, level ${L.lvl}`}${G.ranked?`<br>${L.rpd>=0?'+':''}${L.rpd} rank points${L.rpB?(L.rpB.txt?' ('+L.rpB.txt+')':''):''}, now ${RANKS[rankOf(p.rp)].n} with ${p.rp}`:''}${L.chxp?'<br>Challenges complete: +'+L.chxp+' XP':''}${L.cards&&L.cards.length?'<br>New calling card: '+L.cards.join(', '):''}${p.newCol&&p.newCol.length?'<br>Unlocked '+p.newCol.join(', '):''}${p.newBadges&&p.newBadges.length?'<br>New badge: '+p.newBadges.map(b=>BADGES[b].n).join(', '):''}</div></div>`);p.newBadges=[];p.newCol=[]},50);$('endT').textContent=w==='win'?'Victory':'Defeat';$('endP').textContent=why||(w==='win'?(G.mode==='pve'&&humans().length>1?'You and your allies wiped out every AI army.':'Every rival army has been wiped out or lost all its bases. The valley is yours.'):'Every one of your bases has been captured or destroyed.');
   $('endBody').innerHTML=assetsHTML();$('end').hidden=false}
 
 // ---------- help ----------
@@ -4149,6 +4202,7 @@ function helpHTML(){return `<div style="columns:2 280px;column-gap:28px;font-siz
 <p><b>Walls and barriers.</b> In Build, pick a concrete wall ($500 per 100 m), Jersey barrier ($300) or tank blockers ($200), then click a start point and an end point near one of your bases. Walls and barriers stop enemy infantry and vehicles; tank blockers stop only vehicles. Your own units pass through as if through gates. Enemies that get stuck against them start shooting their way through.</p>
 <p><b>Friends.</b> In Multiplayer, share your 6-letter friend code and add your friends' codes. You can see when they are online or hosting, join their match, or invite them to yours.</p>
 <p><b>Saving.</b> Your level, rank, badges, cards and friends save on every change and when you leave a match (you still get XP for what you did). Updating the game keeps your progress. To move it between claude.ai, itch.io and the Windows app, use Backup code in Settings.</p>
+<p><b>New in 4.1.</b> Every bot has a hidden skill that never changes. Skilled bots climb the ladder; weak bots that get lucky still play weak. High-skill bots play like strong players: they fire strikes and pump out troops as fast as cooldowns allow. Matchmaking puts you against your own rank, some from one rank below and the odd one above. The top 100 Champions get a numbered placement. Ranked: survive 20 minutes for +100 points, and if you lose after 20 minutes you lose nothing; leaving still costs points. Ranked matches open with an intro showing every player's rank. New ranked calling cards show your rank badge, and profile frames add space, electric, fire, missile or rank-rain effects around the outside of your card.</p>
 <p><b>New in 4.0.</b> Units only capture the base they were sent to: a Command target, or their own attack group's target. Each attack group picks a base, fights for it, captures it, then moves on; other groups do not wander in. If an ally takes your target first, your units stop and hold. Bots understand much more (why are you attacking me, do you need help, where should we attack, are we winning, follow me, how much money, your level), notice when you repeat yourself, warm up to players who are nice to them, and no longer answer a plain "ok". New: titles to equip under your name and 24 more calling cards, most of them animated. Rank badges now match the ranks you really reached.</p>
 <p><b>New in 3.9.</b> MIRV (I): splits into six heavy warheads over the target. SEAD missile (G): hunts the nearest enemy AA, C-RAM, interceptor site or radar near where you aim and knocks out its electronics. Heavy gunship (Air menu): a tougher helicopter with long-range anti-tank rockets. Walls snap to the ends of your other walls, keep 15 degree angles and 10 m lengths; hold Shift to chain them and Alt to place freely. Destroyed walls clear away after a minute.</p>
 <p><b>Bot chatter (Advanced Vocab V2).</b> Bots build their lines on the fly from slang, tactical callouts and trash talk, and react to how you play: camping, missing shots, sweating the lobby or feeding units. Enemies roast you in all chat; teammates hype you up, give tips or ask you to regroup in team chat. Teammates never argue with what you type in all chat. Settings has a Clean option that removes swearing.</p>
@@ -4492,6 +4546,106 @@ replyFrom=function(b,h,kind,ch,text,delay,named){const m=TK.mood[b+'_'+h]||0;
 (function(){const x=VB.pl.salty.indexOf('Uninstall life');if(x>=0)VB.pl.salty.splice(x,1)})();
 
 setTimeout(()=>{try{const p=P_();fixRankBadges(p);noteNewCollection(p);SAVE.saveProfile();if(typeof renderStartProfile==='function'&&!started)renderStartProfile()}catch(e){}},600);
+
+// ================= VERSION 4.1: skill-based ladder, rank matchmaking, Top 100, survival points, ranked intro, ranked cards, profile frames =================
+// ---------- bot roster: 240 bots, each with a hidden skill that never changes ----------
+// Rank is earned on the ladder; skill is how well the bot actually plays. A weak bot can get lucky
+// and climb, but it keeps playing like a weak bot.
+const BOT_PRE=['','','','','xX','The','Sgt','Cpt','Lt','Maj','Col','Pvt','Dr','Big','Lil','Mr'];
+const BOT_SUF=['','','','','','7','99','_TV','X','Jr','ttv','HD','Pro','420','01','GG'];
+function botRoster(){const KEY='bots2';let b=SAVE.lsGet(KEY);const sn=seasonNow();if(b&&b.length===240&&SAVE.lsGet('bots2Season')===sn)return b;
+  const old=b&&b.length===240?b:null;SAVE.lsSet('bots2Season',sn);const R=mulberry(777);const used=new Set();
+  b=[];for(let i=0;i<240;i++){let n;do{n=BOT_PRE[(R()*BOT_PRE.length)|0]+BOT_NAMES[(R()*BOT_NAMES.length)|0]+BOT_SUF[(R()*BOT_SUF.length)|0]+(R()<.25?String((R()*90+10)|0):'')}while(used.has(n));used.add(n);
+    const sk=Math.min(.99,Math.pow(R(),1.25));b.push({id:i,n,sk,lvl:clamp(Math.round(8+sk*80+R()*14),1,100),rp:0,w:0,l:0,k:0,p:PERSONAS[(R()*4)|0]})}
+  if(old)b.forEach((x,i)=>{x.past=(old[i].past||[]).concat({s:sn-1,rp:old[i].rp,rank:RANKS[rankOf(old[i].rp)].n}).slice(-6);x.k=old[i].k||0;x.lvl=old[i].lvl||x.lvl});
+  // play out the days already gone in this season
+  simulateLadder(b,Math.round(240*(1+Math.max(0,(Date.now()-(SEASON0+(sn-1)*SEASON_MS))/86400000)*1.6)));SAVE.lsSet(KEY,b);return b}
+saveRoster=function(b){SAVE.lsSet('bots2',b)};
+// bots get matched with bots near their own rank, and the better player usually wins
+simulateLadder=function(b,n){for(let k=0;k<n;k++){const a=pick(b);const ra=rankOf(a.rp);const near=b.filter(x=>x!==a&&Math.abs(rankOf(x.rp)-ra)<=1);const c=near.length?pick(near):pick(b);if(a===c)continue;
+  const pa=1/(1+Math.exp(-(a.sk-c.sk)*7));const aw=Math.random()<pa;const W_=aw?a:c,L_=aw?c:a;
+  const kills=Math.round(rnd(50,260)*(.6+W_.sk)),caps=Math.round(rnd(0,5)*(.5+W_.sk)),blds=Math.round(rnd(4,26)*(.6+W_.sk));
+  botLadderResult(W_,true,kills,caps,blds);W_.w++;W_.k=(W_.k||0)+kills;botLadderResult(L_,false);L_.l++;if(Math.random()<.2)W_.lvl=Math.min(100,W_.lvl+1)}};
+// matchmaking: mostly your own rank, some from one rank below, occasionally one above
+pickBots=function(n,rp,exclude){const r=rankOf(rp);const b=botRoster().filter(x=>!(exclude||[]).includes(x.id));
+  const w=x=>{const d=rankOf(x.rp)-r;return d===0?3:d===-1?1.4:d===1?.45:0};const pool=b.filter(x=>w(x)>0);const out=[];
+  while(out.length<n&&pool.length){let tot=pool.reduce((a,x)=>a+w(x),0),t=Math.random()*tot;let i=0;for(;i<pool.length;i++){t-=w(pool[i]);if(t<=0)break}out.push(pool.splice(Math.min(i,pool.length-1),1)[0])}
+  if(out.length<n)out.push(...b.filter(x=>!out.includes(x)).sort((x,y)=>Math.abs(x.rp-rp)-Math.abs(y.rp-rp)).slice(0,n-out.length));return out};
+function skillMul(T){return .6+1.6*(T.skill===undefined?.5:T.skill)}
+function playStyle(sk){return sk>=.85?'Pro: spams strikes and troops the moment cooldowns allow':sk>=.65?'Expert: fast and aggressive':sk>=.45?'Skilled: steady and smart':sk>=.25?'Average: a bit slow to react':'Rookie: slow, passive builds'}
+// ---------- Top 100 Champion placement ----------
+function champList(){const p=P_();const L=botRoster().filter(x=>rankOf(x.rp)===5).map(x=>({rp:x.rp,id:x.id}));if(rankOf(p.rp)===5)L.push({rp:p.rp,me:1});return L.sort((a,c)=>c.rp-a.rp)}
+function champPlace(rp,isMe,id){if(rankOf(rp)!==5)return 0;const L=champList();const i=L.findIndex(x=>isMe?x.me:x.id===id);return i>=0&&i<100?i+1:0}
+function noteTop100(){const p=P_();const pl=champPlace(p.rp,true);if(pl){p.top100=Math.min(p.top100||999,pl);SAVE.saveProfile()}return pl}
+function rankLabel(rp,isMe,id){const pl=champPlace(rp,isMe,id);return pl?`<span class="t100">Champion #${pl}</span>`:RANKS[rankOf(rp)].n}
+leaderboardHTML=function(){const p=P_();noteTop100();const b=botRoster();const rows=b.map(x=>({n:x.n,rp:x.rp,lvl:x.lvl,w:x.w,l:x.l,bot:1,id:x.id})).concat([{n:(NET.nick||nameOf(NET.myId)||'You')+' (you)',rp:p.rp,lvl:p.lvl,w:p.rw,l:p.rl,me:1}]).sort((a,c)=>c.rp-a.rp);
+  const mi=rows.findIndex(r=>r.me);const nCh=champList().length;
+  const row=(r,i)=>`<tr class="${r.me?'meRow':''}" ${r.bot?'data-bot="'+r.id+'"':''}><td>${i+1}</td><td style="text-align:left">${esc(r.n)}${r.bot?' <small class="botTag">bot</small>':''}</td><td>${rankBadge(r.rp,22)} ${rankLabel(r.rp,r.me,r.id)}</td><td>${r.rp.toLocaleString('en-US')}</td><td>${r.lvl}</td><td>${r.w}</td></tr>`;
+  return `<div class="lnote" style="color:var(--ink2);margin:6px 0">${seasonLine()} ${nCh===1?'1 commander is':nCh+' commanders are'} in Champion; the top 100 get a numbered placement.${p.past&&p.past.length?' Last season you finished '+p.past[p.past.length-1].rank+' with '+p.past[p.past.length-1].rp+' points.':''}</div><table class="as lb"><thead><tr><th>#</th><th>Commander</th><th>Rank</th><th>Points</th><th>Level</th><th>Wins</th></tr></thead><tbody>`+
+    rows.slice(0,100).map(row).join('')+(mi>=100?row(rows[mi],mi):'')+'</tbody></table>'};
+// ---------- ranked points: 20 minute survival ----------
+const SURVIVE=1200;
+function survivedFor(T){return Math.max(0,((T.elim&&T.elimT)?T.elimT:G.t)-(G.warT||0))}
+rankedPoints=function(T,win,rp,quit){const surv=survivedFor(T)>=SURVIVE&&!quit;const sb=surv?100:0;
+  if(quit){const loss=LOSS_BY_RANK[rankOf(rp)];return{total:-loss,loss,txt:'left the match: '+loss+' point penalty'}}
+  if(!win){if(surv)return{total:100,loss:0,txt:'survived 20 minutes: +100, no loss'};const loss=LOSS_BY_RANK[rankOf(rp)];return{total:-loss,loss,txt:'loss penalty for '+RANKS[rankOf(rp)].n}}
+  const kills=Math.min(400,T.kills),caps=Math.min(250,T.st.capZ*25),blds=Math.min(150,T.st.killsS*3),winB=250;
+  return{total:kills+caps+blds+winB+sb,kills,caps,blds,win:winB,surv:sb,loss:0,txt:kills+' kills, '+caps+' captures, '+blds+' buildings, '+winB+' win'+(sb?', +100 survived 20 minutes':'')}};
+// ---------- ranked intro: RANKED with a glint, then your team against the enemy ----------
+function rkPlayers(){return G.T.map(T=>{const me=T.i===ME;let rp=me?P_().rp:T.botRp;if(rp===undefined&&T.human){const pf=(typeof slotPf==='function'&&NET.slots)?Object.values(NET.slots).find(s=>s.team===T.i):null;rp=pf&&pf.pf?pf.pf.rp||0:0}
+  return{t:T.i,me,name:me?(NET.nick||'You'):T.name,rp:rp||0,lvl:T.lvl||1,bot:!T.human,title:me?P_().title:null,mate:me||(G.side?G.side[T.i]===G.side[ME]:false)}})}
+function showRankedIntro(){if(UIS.rkIntro)return;UIS.rkIntro=1;const el=$('rkIntro');if(!el)return;const P=rkPlayers();const L=P.filter(x=>x.mate),Rt=P.filter(x=>!x.mate);
+  const card=(x,i,side)=>`<div class="rkp ${side}" style="animation-delay:${1.7+i*.18}s"><div class="rkb">${rankBadge(x.rp,74,true)}</div><div class="rkr">${rankLabel(x.rp,x.me,x.t>=0&&G.T[x.t].botId!==undefined?G.T[x.t].botId:-1)}</div><b>${esc(x.name)}</b><small>Lv ${x.lvl}${x.bot?' · bot':''}</small>${x.title?'<em>'+esc(titleName(x.title))+'</em>':''}</div>`;
+  el.innerHTML=`<div class="rk-word"><span>RANKED</span><i></i></div><div class="rk-sub">${esc(G.modeName||'Ranked')} · Season ${seasonNow()}</div>
+    <div class="rk-vs"><div class="rk-side left">${L.map((x,i)=>card(x,i,'left')).join('')}</div><div class="rk-mid">VS</div><div class="rk-side right">${Rt.map((x,i)=>card(x,i,'right')).join('')}</div></div><div class="rk-tap">Click anywhere to continue</div>`;
+  el.hidden=false;el.classList.remove('out');AU.ui('capture');const close=()=>{el.classList.add('out');setTimeout(()=>{el.hidden=true},450)};el.onclick=close;setTimeout(close,8500)}
+setInterval(()=>{try{if(started&&G&&G.ranked&&!UIS.rkIntro)showRankedIntro()}catch(e){}},400);
+// ---------- ranked calling cards ----------
+CARDS.push(
+  {id:'rk0',cat:'ranked',rk:0,n:'Bronze service',bg:'linear-gradient(120deg,#2a1608,#7a4a24,#c98a52,#7a4a24,#2a1608)',anim:'shine',req:'rank:0'},
+  {id:'rk1',cat:'ranked',rk:1,n:'Silver service',bg:'linear-gradient(120deg,#1f2937,#7d8a96,#e3e8ee,#7d8a96,#1f2937)',anim:'shine',req:'rank:1'},
+  {id:'rk2',cat:'ranked',rk:2,n:'Gold service',bg:'linear-gradient(120deg,#3a2504,#b07a12,#ffd66b,#fff4c2,#b07a12,#3a2504)',anim:'pan',req:'rank:2'},
+  {id:'rk3',cat:'ranked',rk:3,n:'Platinum surge',bg:'linear-gradient(120deg,#022c2a,#2f8f86,#8ff0e0,#e7fffb,#2f8f86,#022c2a)',anim:'pan scan',crazy:1,req:'rank:3'},
+  {id:'rk4',cat:'ranked',rk:4,n:'Diamond storm',bg:'linear-gradient(120deg,#020a2a,#3b5bd6,#a8c8ff,#ffffff,#3b5bd6,#020a2a)',spin:'conic-gradient(from 0deg,transparent 0 40deg,rgba(255,255,255,.55) 60deg,transparent 80deg 160deg,rgba(168,200,255,.6) 190deg,transparent 220deg 300deg,rgba(255,255,255,.45) 320deg,transparent 340deg)',anim:'shine spin',crazy:1,req:'rank:4'},
+  {id:'rk5',cat:'ranked',rk:5,n:'Champion inferno',bg:'linear-gradient(0deg,#fff4c2,#ffd66b 15%,#ff6b4a 35%,#9b1d3a 60%,#2a0610 90%)',spin:'conic-gradient(from 0deg,transparent 0 30deg,rgba(255,214,107,.7) 50deg,transparent 70deg 150deg,rgba(255,107,74,.7) 180deg,transparent 210deg 290deg,rgba(255,244,194,.6) 315deg,transparent 340deg)',anim:'fire spin',crazy:1,req:'rank:5'},
+  {id:'rk100',cat:'ranked',rk:5,top:1,n:'Top 100 elite',bg:'linear-gradient(120deg,#1a0510,#9b1d3a,#ff9a9a,#ffd66b,#fff,#ffd66b,#9b1d3a,#1a0510)',spin:'conic-gradient(from 0deg,rgba(255,255,255,0) 0,rgba(255,214,107,.75) 30deg,rgba(255,255,255,0) 60deg,rgba(255,154,154,.7) 150deg,rgba(255,255,255,0) 190deg,rgba(255,244,194,.8) 270deg,rgba(255,255,255,0) 310deg)',anim:'pan spin',crazy:1,req:'top100'});
+const _reqMet0=reqMet;reqMet=function(req,p){if(req==='top100')return !!p.top100;return _reqMet0(req,p)};
+const _reqText0=reqText;reqText=function(req){if(req==='top100')return 'Place in the Champion top 100';if(req==='rank:0')return 'Play ranked';return _reqText0(req)};
+const _cardUnl0=cardUnlocked;cardUnlocked=function(k){if(k.req==='rank:0')return true;if(k.req==='top100')return !!P_().top100;return _cardUnl0(k)};
+cardAnim=function(id){const k=CARDS.find(c=>c.id===id);return k&&k.anim?k.anim.split(' ').map(a=>'cc-'+a).join(' ')+(k.rk!==undefined?' has-ccb':''):''};
+function cardBadge(id){const k=CARDS.find(c=>c.id===id);if(!k||k.rk===undefined)return '';return `<span class="ccb${k.crazy?' crazy':''}">${rankBadge(RANKS[k.rk].rp,k.crazy?46:40,true)}${k.top?'<em>TOP 100</em>':''}</span>`}
+cardPickerHTML=function(){const p=P_();const reg=CARDS.filter(k=>!k.cat),rk=CARDS.filter(k=>k.cat==='ranked');const got=reg.filter(k=>cardUnlocked(k)).length,gr=rk.filter(k=>cardUnlocked(k)).length;
+  const btn=k=>{const ok=cardUnlocked(k);return `<button class="ccard ${cardAnim(k.id)}${p.card===k.id?' on':''}${ok?'':' lock'}" data-card="${k.id}" ${ok?'':'disabled'} style="background:${k.bg};${cardStyle(k.id)}"><b>${k.n}${k.anim?' <i class="anim-dot" title="Animated"></i>':''}</b>${ok?'':`<small>${esc(reqText(k.req))}</small>`}${cardBadge(k.id)}</button>`};
+  return `<div class="lnote" style="color:var(--ink2)">${got} of ${reg.length} collected. Animated cards move.</div><div class="cards2">${reg.map(btn).join('')}</div>
+    <div class="lh">Ranked calling cards</div><div class="lnote" style="color:var(--ink2)">${gr} of ${rk.length} earned. Unlocked by the best rank you reach; the top three ranks are fully animated.</div><div class="cards2 rkcards">${rk.map(btn).join('')}</div>`};
+// ---------- profile frames: animated effects around the outside of your card ----------
+const PFX=[{id:'',n:'None',req:'lvl:1'},{id:'space',n:'Deep space',req:'lvl:15'},{id:'electric',n:'Electric',req:'lvl:35'},{id:'fire',n:'Wildfire',req:'lvl:55'},
+  {id:'missiles',n:'Missile barrage',req:'stat:missiles:200'},{id:'ranks',n:'Rank rain',req:'rank:2'}];
+function pfxOk(f,p){return !f.id||reqMet(f.req,p||P_())}
+function pfxWrap(fx,inner,cls){return `<div class="pfxw ${cls||''}${fx?' pfx-'+fx:''}">${inner}</div>`}
+function pfxPickerHTML(){const p=P_();return '<div class="titles2">'+PFX.map(f=>{const ok=pfxOk(f,p);return `<button class="ttl pfxbtn${(p.pfx||'')===f.id?' on':''}${ok?'':' lock'}" data-pfx="${f.id}" ${ok?'':'disabled'}><span class="pfxsw pfx-${f.id||'none'}"></span><b>${f.n}</b>${ok?'':`<small>${esc(reqText(f.req))}</small>`}</button>`}).join('')+'</div>'}
+const _pcHTML0=profileCardHTML;profileCardHTML=function(){const p=P_();let h=_pcHTML0().trim();const k=h.lastIndexOf('</div>');h=h.slice(0,k)+cardBadge(p.card)+h.slice(k);return pfxWrap(p.pfx||'',h,'pfx-start')};
+const _pfHTML0=profileHTML;profileHTML=function(d){if(!d)return '';let h=_pfHTML0(d);const i=h.indexOf('<dl class="stats"');let head=h.slice(0,i),rest=h.slice(i);
+  head=head.trim();{const k=head.lastIndexOf('</div>');head=head.slice(0,k)+cardBadge(d.card)+head.slice(k)}
+  if(d.bot&&d.sk!==undefined)rest=rest.replace('<dt>Kills</dt>','<dt>Play style</dt><dd>'+esc(playStyle(d.sk))+'</dd><dt>Kills</dt>');
+  const pl=champPlace(d.rp,!!d.me,d.botId);if(pl)rest=rest.replace(/<dd>Champion, /,'<dd><span class="t100">Champion #'+pl+'</span>, ');
+  return pfxWrap(d.pfx||'',head,'pfx-prof')+rest};
+const _pfData0=profileData;profileData=function(kind,ref){const d=_pfData0(kind,ref);if(!d)return d;if(kind==='me')d.pfx=P_().pfx||'';
+  if(kind==='bot'){const bt=botRoster().find(x=>x.id===ref);if(bt){d.sk=bt.sk;d.botId=bt.id;d.pfx=bt.sk>.9?'fire':bt.sk>.8?'electric':bt.sk>.7?'space':'';if(rankOf(bt.rp)>=3)d.card='rk'+rankOf(bt.rp)}}return d};
+const _showPf0=showProfile;showProfile=function(kind,ref){_showPf0(kind,ref);if(kind!=='me')return;const body=$('pfBody');const lh=[...body.querySelectorAll('.lh')].find(x=>x.textContent==='Title');
+  if(lh)lh.insertAdjacentHTML('beforebegin','<div class="lh">Profile frame</div><div class="lnote" style="color:var(--ink2)">An animated effect around the outside of your card.</div>'+pfxPickerHTML());
+  body.querySelectorAll('[data-pfx]').forEach(b=>b.onclick=()=>{P_().pfx=b.dataset.pfx;SAVE.saveProfile();showProfile('me');renderStartProfile();AU.ui('click')})};
+// ranked tab: who you will face and your Top 100 placement
+const _rsp0=renderStartProfile;renderStartProfile=function(){_rsp0();const rk=$('rankBig');if(!rk)return;const p=P_();const r=rankOf(p.rp);const pl=noteTop100();
+  const mm=r===0?'You face Bronze players and a few Silvers.':r===5?'You face Champions and some Diamonds.':'You face '+RANKS[r].n+' players, some '+RANKS[r-1].n+'s and the odd '+RANKS[Math.min(5,r+1)].n+'.';
+  const d=rk.querySelector('div');if(d&&!rk.querySelector('.mmline'))d.insertAdjacentHTML('beforeend',`<span class="mmline">${pl?'<span class="t100">Champion #'+pl+'</span> · ':''}${mm}</span>`);
+  noteNewCollection(p)};
+// ---------- the generated frame art ----------
+(function(){const svg=s=>'url("data:image/svg+xml,'+encodeURIComponent(s)+'")';
+  const missile=svg('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><g transform="rotate(45 32 32)"><rect x="29" y="6" width="6" height="22" rx="3" fill="#e5e7eb"/><path d="M29 10 32 2 35 10z" fill="#ef4444"/><path d="M29 24l-4 6h4zM35 24l4 6h-4z" fill="#9ca3af"/><path d="M30 28h4l-2 22z" fill="#fb923c" opacity=".9"/><path d="M31 30h2l-1 30z" fill="#fde68a" opacity=".7"/></g></svg>');
+  const shield=c=>'<path d="M16 3l11 4.5v8.5c0 7-5 11.5-11 13.5C10 27.5 5 23 5 16V7.5z" fill="'+c+'" stroke="rgba(0,0,0,.4)"/>';
+  const ranks=svg('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><g transform="translate(4 4) scale(.7)">'+shield('#ffd66b')+'</g><g transform="translate(44 30) scale(.6)">'+shield('#8ff0e0')+'</g><g transform="translate(14 50) scale(.55)">'+shield('#a8c8ff')+'</g><g transform="translate(52 2) scale(.45)">'+shield('#ff9a9a')+'</g></svg>');
+  const st=document.createElement('style');st.textContent=`:root{--pfx-missile:${missile};--pfx-ranks:${ranks}}`;document.head.appendChild(st)})();
 })();
 </script>
 </body>

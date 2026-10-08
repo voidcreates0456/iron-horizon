@@ -1,14 +1,14 @@
 {
- "version": "4.0",
+ "version": "4.1",
  "notes": [
-  "Units only capture the base you assigned them to, and stop instead of walking into a base your ally already took",
-  "Every attack group now picks its own target, fights for it, captures it, then moves on",
-  "Conversation V3: bots answer why they are attacking you, whether they need help, where to attack, if your team is winning, their money and level, and follow you into a push",
-  "Bots no longer reply to a plain ok, notice when you repeat yourself, and warm up to players who are nice to them",
-  "Removed the 'uninstall life' line",
-  "Fixed rank badges: Reached Gold, Diamond and Champion only appear once you really reach those ranks",
-  "New collectible: 28 titles to equip under your name, shown on your profile and in lobbies",
-  "24 new calling cards, most of them animated"
+  "Every bot now has a hidden skill that never changes: skilled bots climb the ladder, weak bots that get lucky still play weak",
+  "High-skill bots play like strong players: they fire strikes and pump out troops as fast as cooldowns allow",
+  "Matchmaking puts you against your own rank, some from one rank below and the odd one above",
+  "240 bots on the ladder, and the top 100 Champions get a numbered placement",
+  "Ranked: survive 20 minutes for +100 points; lose after 20 minutes and you lose nothing. Leaving still costs points",
+  "Ranked matches open with an animated RANKED intro and a your-team-vs-enemies screen with every player's rank",
+  "New ranked calling cards with your rank badge; Platinum, Diamond, Champion and Top 100 are fully animated",
+  "New profile frames around the outside of your card: Deep space, Electric, Wildfire, Missile barrage and Rank rain"
  ],
  "files": [
   "index.html",
