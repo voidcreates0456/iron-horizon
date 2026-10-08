@@ -395,7 +395,7 @@ body.pre #top,body.pre #rail,body.pre #mini,body.pre #feed,body.pre #labels,body
       <div class="lh">Unlocks</div><div id="unlocks"></div></div>
     <div id="tabMp" hidden><div class="netrow"><span class="netstat" id="netStat">Connecting</span></div><div id="lobby"></div><div id="friendsBox"></div></div>
     <div class="prof" id="prof"></div>
-    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 3.9 (MIRV, SEAD, gunship, wall snapping)</div>
+    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 3.9.1 (small update)</div>
     <div class="keys">
       <div><b>Left click or drag</b> select units</div><div><b>Right click</b> move or attack</div>
       <div><b>WASD or arrows</b> move camera</div><div><b>Wheel</b> zoom, <b>Q E</b> rotate, <b>R T</b> tilt</div>
@@ -3197,7 +3197,7 @@ function chatRender(){const el=$('chatLog');if(!el)return;const list=(G.chat||[]
   const now=G.t;const open=$('chatWrap').classList.contains('open');
   const h=list.filter(m=>open||now-m.t<25).map(m=>`<div class="cl${m.ch==='team'?' tm':''}"><span class="cn" data-pt="${m.team}" style="color:${m.team>=0?TEAMS[m.team].css:'#ccc'}">${m.ch==='team'?'[Team] ':''}${esc(m.name)}${m.lvl?` <small>Lv ${m.lvl}</small>`:''}</span> ${esc(m.text)}</div>`).join('');
   if(el._h!==h){el._h=h;el.innerHTML=h;el.scrollTop=1e6}}
-function chatOpen(){const w=$('chatWrap');w.classList.add('open');$('chatIn').focus()}
+function chatOpen(){const w=$('chatWrap');w.classList.add('open');w.classList.remove('hid');$('chatIn').focus()}
 function chatSend(){const i=$('chatIn');const t=i.value.trim();if(!t){$('chatWrap').classList.remove('open');i.blur();return}i.value='';act({k:'chat',text:t,ch:UIS.chatCh||'all'});if(NET.role==='client')chatRender()}
 
 // ---------- challenges: three random ones every 8 hours ----------

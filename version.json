@@ -1,14 +1,16 @@
 {
- "version": "3.9",
+ "version": "3.9.1",
  "notes": [
-  "New missile: MIRV (I) splits into six heavy warheads over the target",
-  "New missile: SEAD (G) hunts enemy AA, C-RAM, interceptor sites and radar and knocks them out",
-  "New helicopter: Heavy gunship with long-range anti-tank rockets (level 24)",
-  "Wall snapping: walls join the ends of other walls, keep 15 degree angles and 10 m lengths. Shift chains, Alt places freely",
-  "Destroyed walls clear away after one minute",
-  "Ranked wins now give 250 points for the win",
-  "Higher-ranked bots are stronger: better economy, production and battle cards",
-  "Arguing with a bot escalates instead of repeating, and it mutes you if you keep going"
+  "3.9.1: Pressing Enter to chat now shows the chat even if you hid it",
+  "3.9.1: Small fixes and launcher update test",
+  "From 3.9: New missile MIRV (I) splits into six heavy warheads over the target",
+  "From 3.9: New missile SEAD (G) hunts enemy AA, C-RAM, interceptor sites and radar",
+  "From 3.9: New Heavy gunship helicopter with long-range anti-tank rockets (level 24)",
+  "From 3.9: Wall snapping to wall ends, 15 degree angles and 10 m lengths. Shift chains, Alt places freely",
+  "From 3.9: Destroyed walls clear away after one minute",
+  "From 3.9: Ranked wins give 250 points for the win",
+  "From 3.9: Higher-ranked bots are stronger",
+  "From 3.9: Arguing with a bot escalates and ends with it muting you"
  ],
  "files": [
   "index.html",
