@@ -493,7 +493,7 @@ body.pre #top,body.pre #rail,body.pre #mini,body.pre #feed,body.pre #labels,body
       <div class="lh">Unlocks</div><div id="unlocks"></div></div>
     <div id="tabMp" hidden><div class="netrow"><span class="netstat" id="netStat">Connecting</span></div><div id="lobby"></div><div id="friendsBox"></div></div>
     <div class="prof" id="prof"></div>
-    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 4.4 (blast physics)</div>
+    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 4.5 (surrender, stacking missiles, smoother smoke)</div>
     <div class="keys">
       <div><b>Left click or drag</b> select units</div><div><b>Right click</b> move or attack</div>
       <div><b>WASD or arrows</b> move camera</div><div><b>Wheel</b> zoom, <b>Q E</b> rotate, <b>R T</b> tilt</div>
@@ -667,7 +667,7 @@ const SP={
 
 const DIFF=[{name:'Recruit',ai:.7,push:16,prep:120,bias:.25},{name:'Veteran',ai:1,push:11,prep:90,bias:.4},{name:'Warlord',ai:1.35,push:8,prep:75,bias:.55}];
 const CAP_TIME={big:90,small:30};
-const UNIT_CAP=100,HUMAN_CAP=150,HELI_CAP=12;
+const UNIT_CAP=100,HUMAN_CAP=200,HELI_CAP=12;
 // per-army modifiers from skills (lobby) and battle cards (this match only)
 const MOD0={inc:1,build:1,dup:0,fast:0,dmg:{},shp:1,reload:1,cap:1,hp:1,rep:1};
 function MODS(t){const T=G&&G.T&&G.T[t];return T&&T.mods||MOD0}
@@ -1380,7 +1380,7 @@ function syncEntities(dt,rt){
       if(d.t>d.T){scene.remove(g);REN.deaths.splice(i,1)}}}
   for(let i=REN.wrecks.length-1;i>=0;i--){const w=REN.wrecks[i];w.t+=dt;if(w.t>70){w.g.position.y-=dt*.3;if(w.t>78){scene.remove(w.g);REN.wrecks.splice(i,1)}}}
   for(let i=REN.flying.length-1;i>=0;i--){const f=REN.flying[i];f.vy-=30*dt;f.g.position.x+=f.vx*dt;f.g.position.y+=f.vy*dt;f.g.position.z+=f.vz*dt;f.g.rotation.x+=f.rx*dt;f.g.rotation.z+=f.rz*dt;
-    if(Math.random()<.5)smoke(f.g.position.x,f.g.position.y,f.g.position.z,0,1,0,2.5,1.5,5,.12,.12,.12,.6);
+    if(f.ph){if(Math.random()<.3)smoke(f.g.position.x,f.g.position.y,f.g.position.z,0,.6,0,4.5,2.5,9,.44,.42,.39,.26)}else if(Math.random()<.5)smoke(f.g.position.x,f.g.position.y,f.g.position.z,0,1,0,3.5,1.8,6.5,.16,.15,.14,.5);
     const gh=hAt(f.g.position.x,f.g.position.z);if(f.g.position.y<=gh+.5){f.g.position.y=gh+.5;if(f.vy<-6){f.vy*=-.25;f.vx*=.4;f.vz*=.4;f.rx*=.3;f.rz*=.3;dust(f.g.position.x,gh,f.g.position.z,3)}else{REN.wrecks.push({g:f.g,t:0});REN.flying.splice(i,1)}}}
   updFlags(dt,rt);updSelRings()}
 function unitDeath(u,g){g.userData.dying=1;REN.units.delete(u);const d=UT[u.t];
@@ -1459,8 +1459,8 @@ function makePS(N,tex,add){
     age:new Float32Array(N),life:new Float32Array(N),s0:new Float32Array(N),s1:new Float32Array(N),r:new Float32Array(N),g:new Float32Array(N),b:new Float32Array(N),a:new Float32Array(N),k:new Uint8Array(N),hi:0};
   return D}
 let PS_SMOKE,PS_GLOW;
-function initFX(){PS_SMOKE=makePS(window.IH_MOBILE?7000:15000,texSmoke(),false);PS_GLOW=makePS(6000,texGlow(),true);initDebris();initTracers();initLights();initShock();}
-function spawn(D,x,y,z,vx,vy,vz,life,s0,s1,r,g,b,a,k){const i=D.cur;D.cur=(D.cur+1)%D.N;if(i+1>D.hi)D.hi=i+1;
+function initFX(){PS_SMOKE=makePS(window.IH_MOBILE?9000:20000,texSmoke(),false);PS_GLOW=makePS(6000,texGlow(),true);initDebris();initTracers();initLights();initShock();}
+function spawn(D,x,y,z,vx,vy,vz,life,s0,s1,r,g,b,a,k){let i=D.cur;for(let j=0;j<8;j++){const c=(D.cur+j)%D.N;if(D.life[c]<=0||D.age[c]>D.life[c]*.85){i=c;break}}D.cur=(i+1)%D.N;if(i+1>D.hi)D.hi=i+1;
   D.x[i]=x;D.y[i]=y;D.z[i]=z;D.vx[i]=vx;D.vy[i]=vy;D.vz[i]=vz;D.age[i]=0;D.life[i]=life;D.s0[i]=s0;D.s1[i]=s1;D.r[i]=r;D.g[i]=g;D.b[i]=b;D.a[i]=a;D.k[i]=k||0}
 function smoke(x,y,z,vx,vy,vz,life,s0,s1,r,g,b,a){spawn(PS_SMOKE,x,y,z,vx,vy,vz,life,s0,s1,r,g,b,a,0)}
 function glow(x,y,z,vx,vy,vz,life,s0,s1,k,a){spawn(PS_GLOW,x,y,z,vx,vy,vz,life,s0,s1,1,1,1,a,k)}
@@ -1490,7 +1490,7 @@ function initDebris(){const N=500;const im=new THREE.InstancedMesh(new THREE.Dod
 function debris(x,y,z,vx,vy,vz,s){const d=DEB.a[DEB.cur];DEB.cur=(DEB.cur+1)%DEB.N;Object.assign(d,{x,y,z,vx,vy,vz,s,life:rnd(8,14),age:0,rx:rnd(0,6),ry:rnd(0,6),wx:rnd(-8,8),wy:rnd(-8,8),rest:0,smk:Math.random()<.4})}
 function updDebris(dt){const im=DEB.im;let any=0;
   for(let i=0;i<DEB.N;i++){const d=DEB.a[i];if(d.life<=0)continue;any=1;d.age+=dt;if(d.age>d.life){d.life=0;_tm.makeScale(0,0,0);im.setMatrixAt(i,_tm);continue}
-    if(!d.rest){d.vy-=28*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.z+=d.vz*dt;d.rx+=d.wx*dt;d.ry+=d.wy*dt;if(d.smk&&Math.random()<.4)smoke(d.x,d.y,d.z,0,0,0,1.6,.6,2.5,.2,.19,.18,.5);
+    if(!d.rest){d.vy-=28*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.z+=d.vz*dt;d.rx+=d.wx*dt;d.ry+=d.wy*dt;if(d.smk&&Math.random()<.3)smoke(d.x,d.y,d.z,0,.4,0,2.8,1.2,4.5,.34,.33,.31,.3);
       const gh=hAt(d.x,d.z);if(d.y<gh+d.s*.4){d.y=gh+d.s*.4;if(d.vy<-5){d.vy*=-.3;d.vx*=.5;d.vz*=.5}else d.rest=1}}
     const sc=d.s*(d.age>d.life-1.5?(d.life-d.age)/1.5:1);_tq.setFromEuler(_e.set(d.rx,d.ry,0));_tm.compose(_tv.set(d.x,d.y,d.z),_tq,_ts.set(sc,sc*.7,sc));im.setMatrixAt(i,_tm)}
   if(any)im.instanceMatrix.needsUpdate=true}
@@ -1813,7 +1813,7 @@ function update(dt){
   G.t+=dt;G.tick++;G.tod=(G.tod+dt/G.dayLen)%1;
   if(G.phase==='prep'){G.prepLeft-=dt;if(G.prepLeft<=0){G.phase='war';G.prepLeft=0;G.warT=G.t;if(typeof botCards==='function')botCards();emit({e:'war'});feed('The war has started. Enemy forces are free to attack.',-2,'alert')}}
   rebuildGrid();
-  for(const T of G.T)for(const k in T.cd)if(T.cd[k]>0)T.cd[k]-=dt;
+  for(const T of G.T)for(const k in T.cd)if(T.cd[k]>0)T.cd[k]-=dt;stackTick(dt);
   production(dt);
   for(const u of G.u)if(!u.dead)updUnit(u,dt);
   for(const s of G.s)if(!s.dead&&s.con)conTick(s,dt);
@@ -2094,11 +2094,11 @@ function strikeReady(team,k){const T=G.T[team],sp=SP[k];if(!unlocked(team,k))ret
   if(T.elim)return 'Eliminated';
   if(G.phase==='prep'&&k!=='sat')return 'Available when the war starts';
   if(!hasStruct(team,sp.needs))return 'Needs a '+ST[sp.needs].name.toLowerCase();
-  if(T.cd[k]>0)return 'Reloading '+Math.ceil(T.cd[k])+'s';
+  if(T.cd[k]>0&&!(STACK[k]&&chOf(T,k)>0))return 'Reloading '+Math.ceil(T.cd[k])+'s';
   if(T.money<sp.cost)return 'Not enough funds';return 'ok'}
 function launchStrike(team,k,tx,tz){if(k==='sead'){let best=null,bd=SP.sead.seek*SP.sead.seek;for(const o of G.s){if(o.dead||o.team<0||ally(o.team,team)||!['aa','cram','idrone','radar'].includes(o.t))continue;const d=d2(o.x,o.z,tx,tz);if(d<bd){bd=d;best=o}}
     if(!best)return 'No enemy air defense within 450 m of that spot';tx=best.x;tz=best.z}const r=strikeReady(team,k);if(r!=='ok')return r;
-  const T=G.T[team],sp=SP[k];T.money-=sp.cost;T.cd[k]=sp.cd*(sp.needs==='silo'?siloFactor(team):1);tx=clamp(tx,-(HALF-20),HALF-20);tz=clamp(tz,-(HALF-20),HALF-20);
+  const T=G.T[team],sp=SP[k];T.money-=sp.cost;if(STACK[k])stackFired(team,k);else T.cd[k]=sp.cd*(sp.needs==='silo'?siloFactor(team):1);tx=clamp(tx,-(HALF-20),HALF-20);tz=clamp(tz,-(HALF-20),HALF-20);
   if(k==='sat'){satSweep(team,tx,tz,sp.r);return 'ok'}
   if(k==='barrage'){const hq=pick(teamStructs(team,'hq'));const a=Math.atan2(hq.z-tz,hq.x-tx);
     for(let i=0;i<sp.n;i++){const ra=rnd(0,TAU),rr=Math.sqrt(Math.random())*sp.r;const sx=tx+Math.cos(a)*1700,sz=tz+Math.sin(a)*1700;
@@ -3151,7 +3151,7 @@ function progressAfterMatch(result){const p=P_(),T=G.T[ME],win=result==='win';co
   p.stats.kills+=T.kills;p.stats.caps+=T.st.capZ;p.stats.bdest+=T.st.killsS;p.stats.missiles+=T.st.mFired;if(win)p.stats.wins++;
   if(G.dip)p.stats.allies+=G.T.filter(o=>o.i!==ME&&G.ally[o.i][ME]&&o.ai).length;
   const xp=Math.round((win?400:150)+(T.st.bonusXp||0)+T.kills*2+T.st.capZ*20+T.st.killsS*5+Math.min(G.t,3600)/12)*(rk?1.5:1);const lvBefore=p.lvl;const ups=gainXP(p,xp);
-  let rpd=0,rpB=null;if(rk){const r=rankedPoints(T,win,p.rp,result==='quit');rpd=r.total;rpB=r;p.rp=Math.max(0,p.rp+rpd);
+  let rpd=0,rpB=null;if(rk){const r=rankedPoints(T,win,p.rp,result==='quit',result);rpd=r.total;rpB=r;p.rp=Math.max(0,p.rp+rpd);
     if(win){p.rw++;p.rstreak++}else{p.rl++;p.rstreak=0}
     const b=botRoster();for(const o of G.T){if(o.botId===undefined)continue;const bt=b.find(x=>x.id===o.botId);if(!bt)continue;const ow=ally(o.i,ME)?win:!win&&!o.elim;
       botLadderResult(bt,ow,o.kills,o.st.capZ,o.st.killsS);if(ow)bt.w++;else bt.l++;bt.k=(bt.k||0)+o.kills}
@@ -4223,6 +4223,7 @@ function helpHTML(){return `<div style="columns:2 280px;column-gap:28px;font-siz
 <p><b>Walls and barriers.</b> In Build, pick a concrete wall ($500 per 100 m), Jersey barrier ($300) or tank blockers ($200), then click a start point and an end point near one of your bases. Walls and barriers stop enemy infantry and vehicles; tank blockers stop only vehicles. Your own units pass through as if through gates. Enemies that get stuck against them start shooting their way through.</p>
 <p><b>Friends.</b> In Multiplayer, share your 6-letter friend code and add your friends' codes. You can see when they are online or hosting, join their match, or invite them to yours.</p>
 <p><b>Saving.</b> Your level, rank, badges, cards and friends save on every change and when you leave a match (you still get XP for what you did). Updating the game keeps your progress. To move it between claude.ai, itch.io and the Windows app, use Backup code in Settings.</p>
+<p><b>New in 4.5.</b> Surrender from the menu: it counts as a loss, but in ranked you keep the points you earned for kills, captures and buildings, minus the usual loss for your rank. Tactical and SEAD missiles store up to 3 shots, so you can fire them back to back and then wait while they reload one at a time. Your army can now hold 200 units. When the camera is near your units, each one shows a label with its type, health and veteran stars (turn this off in Settings). Thunder now rolls and cracks instead of sounding like a bomb, and smoke pushed by a blast drifts and fades out smoothly.</p>
 <p><b>New in 4.4.</b> Explosions push on the world. A blast throws smoke and dust outward, punches a hole through rain, snow and fog, bends nearby trees, kicks up rubble, flips wrecks and throws soldiers. In bad weather a big blast clears a pocket for a while: units inside it spot enemies at their full clear-weather range until the weather rolls back in.</p>
 <p><b>New in 4.3.</b> The leaderboard has a My rank tab with everyone in your current rank, next to the Overall top 100. Bots keep their word: when one says it will attack a base or send money later, it does. Bots also trade words with each other when one takes the other's base, then go after it. Chat stays readable: bots answer you right away, but their own chatter is limited to a couple of lines at a time. Weather changes during the match (rain, thunderstorms, snow, heavy fog); bad weather cuts how far units spot enemies.</p>
 <p><b>New in 4.2.</b> Controllers: plug in an Xbox, PlayStation or other gamepad. The right stick moves a cursor, A (✕) selects or clicks buttons (hold to drag a selection box), X (□) moves or attacks, Y (△) opens Build, B (○) goes back, the left stick pans, bumpers rotate, triggers zoom, the D-pad flips through menus (left and right) and your numbered units (up and down), and Menu (Options) opens the menu. Veterancy: units that score kills are promoted to Veteran (3 kills), Elite (7) and Heroic (14), each rank adding 10% health and faster reloads, shown as gold chevrons. Battle report: the end screen shows time survived, kills, captures, buildings, strikes, your largest army, your most valuable unit and a chart of bases held over time.</p>
@@ -4353,7 +4354,7 @@ function openSkills(){const b=$('skBody');b.innerHTML=skillHTML();$('skm').hidde
   if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',go);else go()})();
 
 // ---------- pause menu, settings, players ----------
-const SET_DEF={bright:1,shake:1,master:.85,fx:1,amb:1,ui:1,swear:true};
+const SET_DEF={bright:1,shake:1,master:.85,fx:1,amb:1,ui:1,swear:true,unitTags:true};
 function loadSettings(){UIS.set=Object.assign({},SET_DEF,SAVE.lsGet('settings')||{});applySettings()}
 function applySettings(){const s=UIS.set;window.IH_BRIGHT=s.bright;window.IH_SHAKE=s.shake;AU.vol=s.master;AU.fxV=s.fx;AU.ambV=s.amb;AU.uiV=s.ui;if(AU.master&&AU.on)AU.master.gain.setTargetAtTime(s.master,AU.ctx.currentTime,.05)}
 function settingsHTML(){const s=UIS.set;const row=(k,n,d,min,max,step)=>`<div class="grow"><div><b>${n}</b><small>${d}</small></div><div class="sl"><input type="range" min="${min}" max="${max}" step="${step}" value="${s[k]}" data-set="${k}" aria-label="${n}"><span>${Math.round(s[k]*100)}%</span></div></div>`;
@@ -4856,7 +4857,7 @@ function wxFrame(dt){if(!started||!G)return;const k=wxAt(G.t);if(k!==WXS.cur)wxA
   if(WXS.pts){const a=WXS.pts.geometry.attributes.position,p=a.array,sp=WXS.kind==='snow'?18:160,dr=WXS.kind==='snow'?6:12,cx=CAM.tx,cz=CAM.tz,gh=hAt(cx,cz);WXS.pts.position.set(cx,gh,cz);
     for(let i=0;i<p.length;i+=3){p[i+1]-=sp*dt;p[i]+=Math.sin((p[i+1]+i)*.02)*dr*dt*(WXS.kind==='snow'?1:.2);if(p[i+1]<0){p[i+1]=220;p[i]=rnd(-260,260);p[i+2]=rnd(-260,260)}}a.needsUpdate=true}
   if(W.bolt){WXS.flash-=dt;if(WXS.flash<=0){WXS.flash=rnd(7,18);const f=$('wxFlash');if(f){f.classList.remove('go');void f.offsetWidth;f.classList.add('go')}
-    setTimeout(()=>{if(AU.ready&&AU.ready()){const a=rnd(0,TAU);AU.boom(1.6,CAM.tx+Math.cos(a)*900,0,CAM.tz+Math.sin(a)*900)}},rnd(400,1600))}}}
+    setTimeout(()=>{if(AU.ready&&AU.ready()){const a=rnd(0,TAU);AU.thunder(Math.random()<.3)}},rnd(400,1600))}}}
 const _updateSkyW=updateSky;updateSky=function(...a){_updateSkyW(...a);if(G&&G.weather&&scene.fog){const f=WX[G.weather].fog;scene.fog.near*=f;scene.fog.far*=Math.max(.45,f+.15)}};
 (function wxLoop(){let last=performance.now();const tick=()=>{const now=performance.now();try{wxFrame(Math.min(.1,(now-last)/1000))}catch(e){}last=now;requestAnimationFrame(tick)};requestAnimationFrame(tick)})();
 
@@ -4888,7 +4889,7 @@ function physBlast(x,y,z,r,air){if(typeof scene==='undefined'||!scene||!G)return
   PH.recent.push({x,y,z,r,t:now});if(PH.recent.length>30)PH.recent.shift();
   // 1. smoke, dust and fog already in the air gets thrown outward
   if(PS_SMOKE){const D=PS_SMOKE;for(let i=0;i<D.hi;i++){if(D.life[i]<=0)continue;const dx=D.x[i]-x,dy=D.y[i]-y,dz=D.z[i]-z,dd=Math.hypot(dx,dz);if(dd>R||Math.abs(dy)>R)continue;
-    const f=1-dd/R,k=P*f/(dd||1);D.vx[i]+=dx*k;D.vz[i]+=dz*k;D.vy[i]+=P*f*.25;if(D.k[i]===9)D.life[i]=Math.min(D.life[i],D.age[i]+1.2+3*(1-f))}}
+    const f0=1-dd/R,f=f0*f0*(3-2*f0),sp=Math.min(26,P*.4*f),k=sp/(dd||1);D.vx[i]+=dx*k;D.vz[i]+=dz*k;D.vy[i]+=Math.min(5,P*.06*f);if(D.k[i]===9){const t=D.age[i]/D.life[i],rem=2.5+4*(1-f);if((1-t)*D.life[i]>rem){const L=rem/Math.max(.05,1-t);D.age[i]=t*L;D.life[i]=L}}}}
   // 2. rain and snow get punched out of the way
   if(WXS.pts&&PH.v){const a=WXS.pts.geometry.attributes.position.array,O=WXS.pts.position,v=PH.v,RR=R*1.5;
     for(let i=0;i<a.length;i+=3){const dx=a[i]+O.x-x,dz=a[i+2]+O.z-z,dy=a[i+1]+O.y-y,dd=Math.hypot(dx,dz);if(dd>RR||dy>RR*1.4)continue;const f=1-dd/RR,k=P*1.6*f/(dd||1);v[i]+=dx*k;v[i+2]+=dz*k;v[i+1]+=P*f*(WXS.kind==='snow'?.9:.3)}}
@@ -4899,10 +4900,10 @@ function physBlast(x,y,z,r,air){if(typeof scene==='undefined'||!scene||!G)return
     const A=Math.min(.75,.06+r/55)*f;if(t.la&&now-t.lt<.4&&t.la>A)return;t.lx=dx/dd;t.lz=dz/dd;t.la=A;t.lt=now;if(PH.lean.size<500)PH.lean.add(t)});
   // 4. loose rubble on the ground gets kicked up again
   if(typeof DEB!=='undefined'&&DEB)for(const d of DEB.a){if(d.life<=0)continue;const dx=d.x-x,dz=d.z-z,dd=Math.hypot(dx,dz);if(dd>R*.7)continue;const f=1-dd/(R*.7);
-    d.rest=0;d.vx+=dx/(dd||1)*P*.35*f;d.vz+=dz/(dd||1)*P*.35*f;d.vy+=rnd(6,14)*f+r*.15*f;d.age=Math.min(d.age,d.life-4)}
+    d.rest=0;d.smk=0;d.vx+=dx/(dd||1)*P*.35*f;d.vz+=dz/(dd||1)*P*.35*f;d.vy+=rnd(6,14)*f+r*.15*f;d.age=Math.min(d.age,d.life-4)}
   // 5. wrecks get flipped or shoved, bodies get pushed
   let tossed=0;for(let i=REN.wrecks.length-1;i>=0;i--){const w=REN.wrecks[i],g=w.g,dx=g.position.x-x,dz=g.position.z-z,dd=Math.hypot(dx,dz)||1;if(dd>R*.8)continue;const f=1-dd/(R*.8);
-    if(r>=12&&dd<r*1.3&&tossed<5){tossed++;REN.wrecks.splice(i,1);const sp=Math.min(26,r*.5)*f+4;REN.flying.push({g,vx:dx/dd*sp,vy:Math.min(30,6+r*.6)*f+6,vz:dz/dd*sp,rx:rnd(-3,3)*f,rz:rnd(-3,3)*f})}
+    if(r>=12&&dd<r*1.3&&tossed<5){tossed++;REN.wrecks.splice(i,1);const sp=Math.min(26,r*.5)*f+4;REN.flying.push({g,ph:1,vx:dx/dd*sp,vy:Math.min(30,6+r*.6)*f+6,vz:dz/dd*sp,rx:rnd(-3,3)*f,rz:rnd(-3,3)*f})}
     else{const s=Math.min(5,r*.12)*f;g.position.x+=dx/dd*s;g.position.z+=dz/dd*s;g.position.y=hAt(g.position.x,g.position.z);g.rotation.y+=rnd(-.3,.3)*f}}
   for(const d of REN.deaths){if(d.kind!=='inf'||d.fly)continue;const g=d.g,dx=g.position.x-x,dz=g.position.z-z,dd=Math.hypot(dx,dz)||1;if(dd>R*.6)continue;const f=1-dd/(R*.6);
     if(r>=8&&dd<r)d.fly={vx:dx/dd*Math.min(22,r*.6)*f,vy:Math.min(16,4+r*.35)*f,vz:dz/dd*Math.min(22,r*.6)*f,spin:rnd(-6,6)};else{g.position.x+=dx/dd*2*f;g.position.z+=dz/dd*2*f}}}
@@ -4955,6 +4956,65 @@ const _wxFramePH=wxFrame;wxFrame=function(dt){_wxFramePH(dt);try{physFrame(dt)}c
 const _updateSkyPH=updateSky;updateSky=function(...a){_updateSkyPH(...a);try{if(!PH.pk.length||!badWeather()||!scene.fog)return;const W=WX[G.weather],now=phNow();let s=0;
   for(const p of PH.pk){const R=pkR(p,now);if(R<=0)continue;const d=Math.hypot(CAM.tx-p.x,CAM.tz-p.z);s=Math.max(s,clamp(1-(d-R)/(R+120),0,1)*(R/p.r))}
   if(s>0){s*=.75;scene.fog.near*=1+(1/W.fog-1)*s;scene.fog.far*=1+(1/Math.max(.45,W.fog+.15)-1)*s}}catch(e){}};
+
+
+// ===================== 4.5 =====================
+// ---------- thunder: a long rolling rumble with a sharp crack when the strike is close ----------
+AU.thunder=function(near){if(!this.ready())return;const c=this.ctx,t=c.currentTime+(near?.04:rnd(.7,2.4)),fx=(this.fxV===undefined?1:this.fxV)*(this.ambV===undefined?1:this.ambV);if(fx<=0)return;
+  const out=c.createGain();out.gain.value=fx*(near?1:.7);let o=out;if(c.createStereoPanner){const pn=c.createStereoPanner();pn.pan.value=rnd(-.7,.7);out.connect(pn);o=pn}
+  o.connect(this.master);const wg=c.createGain();wg.gain.value=.7;o.connect(wg);wg.connect(this.verb);
+  const dur=rnd(5.5,8.5);
+  if(near){// the crack: bright noise, then a few splintering aftershocks
+    const hp=this.filt('highpass',1800);this.layer(out,this.white,t,[hp,this.env(t,.002,.55,.28)],.4);
+    for(let i=0;i<4;i++){const tt=t+.05+i*rnd(.04,.11),bp=this.filt('bandpass',rnd(900,2600),1.2);this.layer(out,this.white,tt,[bp,this.env(tt,.002,rnd(.15,.35),.12)],.2)}}
+  // the rumble: deep noise whose loudness rolls in several swells
+  const lp=this.filt('lowpass',near?320:170,.6);lp.frequency.setValueAtTime(near?520:200,t);lp.frequency.exponentialRampToValueAtTime(90,t+dur);
+  const g=c.createGain(),p=g.gain;p.setValueAtTime(.0001,t);let tt=t+(near?.08:.35),v=near?1.2:.8;p.exponentialRampToValueAtTime(v,tt);
+  const n=3+(Math.random()*3|0);for(let i=0;i<n;i++){tt+=dur/(n+1)*rnd(.6,1.2);v=Math.max(.08,v*rnd(.45,.95));p.exponentialRampToValueAtTime(v*.45,tt-rnd(.2,.5));p.exponentialRampToValueAtTime(v,tt)}
+  p.exponentialRampToValueAtTime(.0001,t+dur+1.5);this.layer(out,this.brown,t,[lp,g],dur+1.6,rnd(.7,.9));
+  // a little upper grain so it doesn't sound like pure sub bass
+  const bp=this.filt('lowpass',600,.5),g2=this.env(t+(near?.05:.3),.25,.22,dur*.6);this.layer(out,this.pink,t,[bp,g2],dur,.8)};
+
+// ---------- ranked: surrender keeps what you earned, minus the loss for your rank ----------
+const _rpS=rankedPoints;rankedPoints=function(T,win,rp,quit,res){if(res!=='surrender')return _rpS(T,win,rp,quit);
+  const kills=Math.min(400,T.kills),caps=Math.min(250,T.st.capZ*25),blds=Math.min(150,T.st.killsS*3),earned=kills+caps+blds,loss=LOSS_BY_RANK[rankOf(rp)];
+  return{total:earned-loss,kills,caps,blds,win:0,loss,txt:'surrendered: +'+earned+' earned ('+kills+' kills, '+caps+' captures, '+blds+' buildings), −'+loss+' loss for '+RANKS[rankOf(rp)].n}};
+function surrenderMatch(){if(!started||!G||UIS.ended||G.over)return;const T=G.T[ME];UIS.ended=1;T.result='lose';T.surr=1;
+  try{SAVE.record('surrender')}catch(e){console.error(e)}
+  if(NET.role==='solo'){G.over='lose'}else{try{T.elim=true;T.elimT=G.t}catch(e){}}
+  closeMenu();showEnd('lose','You surrendered.'+(G.ranked&&SAVE.last&&SAVE.last.rpB?' You kept the points you earned, minus the loss for your rank.':''))}
+function bindSurrender(){const q=$('mQuit');if(!q||$('mSurr'))return;q.insertAdjacentHTML('beforebegin','<button class="mini-btn2 danger" id="mSurr" hidden>Surrender</button>');const b=$('mSurr');
+  b.onclick=()=>{if(!b.dataset.sure){b.dataset.sure=1;b.textContent=G&&G.ranked?'Tap again: counts as a loss, you keep earned points':'Tap again to surrender';clearTimeout(UIS.surT);UIS.surT=setTimeout(()=>{delete b.dataset.sure;b.textContent='Surrender'},4000);return}surrenderMatch()}}
+const _openMenuS=openMenu;openMenu=function(){bindSurrender();const b=$('mSurr');if(b)b.hidden=!(started&&G&&!G.over&&!UIS.ended&&G.phase!=='prep'&&!G.T[ME].elim);_openMenuS()};
+
+// ---------- stacking strikes: light missiles hold up to 3 shots ----------
+const STACK={tac:3,sead:3};
+function chOf(T,k){if(!T.ch)T.ch={};if(T.ch[k]===undefined)T.ch[k]=1;return T.ch[k]}
+function fullCd(team,k){const sp=SP[k];return sp.cd*(sp.needs==='silo'?siloFactor(team):1)}
+function stackTick(dt){if(G.phase==='prep')return;for(const T of G.T){if(T.elim)continue;if(!T.chT)T.chT={};for(const k in STACK){if(!T.chT[k]){if(chOf(T,k)<STACK[k]){T.chT[k]=1;if(!(T.cd[k]>0))T.cd[k]=fullCd(T.i,k)}continue}if(T.cd[k]<=0){T.ch[k]=Math.min(STACK[k],chOf(T,k)+1);if(T.ch[k]<STACK[k])T.cd[k]=fullCd(T.i,k);else{T.chT[k]=0;T.cd[k]=0}}}}}
+function stackFired(team,k){const T=G.T[team];chOf(T,k);T.ch[k]=Math.max(0,T.ch[k]-1);if(!T.chT)T.chT={};if(!T.chT[k]){T.chT[k]=1;T.cd[k]=fullCd(team,k)}}
+const _flyTickS=flyTick;flyTick=function(){_flyTickS();try{if(UIS.cat!=='strike'||!G)return;const T=G.T[ME];
+  $('fly').querySelectorAll('.card-u').forEach(b=>{const k=b.dataset.k;if(!STACK[k])return;const n=chOf(T,k),w=b.querySelector('.why');if(!w)return;
+    if(strikeReady(ME,k)==='ok')w.textContent=n+' of '+STACK[k]+' ready'+(n<STACK[k]&&T.cd[k]>0?', next in '+Math.ceil(T.cd[k])+'s':'');
+    b.querySelector('.cd').style.width=n<STACK[k]&&T.cd[k]>0?(100*(1-T.cd[k]/fullCd(ME,k)))+'%':'0'})}catch(e){}};
+
+// ---------- your units show up when the camera is near them ----------
+function unitTagsOn(){return !UIS.set||UIS.set.unitTags!==false}
+const SHORT={rifle:'Rifle',rocket:'Rocket',sniper:'Marksman',heavy:'Heavy tank',mortar:'Mortar',ifv:'IFV',tank:'Tank',arty:'Howitzer',mlrs:'Rockets',spaa:'Anti-air',gunship:'Gunship',heli:'Helicopter',engineer:'Engineer',drone:'Drone'};
+const _drawOverlayT=drawOverlay;drawOverlay=function(){_drawOverlayT();if(!started||!G||!unitTagsOn())return;if(CAM.dist>700)return;
+  const R=Math.min(420,CAM.dist*1.1+90),R2=R*R,list=[];for(const u of G.u){if(u.dead||u.team!==ME)continue;const d=d2(u.x,u.z,CAM.tx,CAM.tz);if(d<R2)list.push([d,u])}
+  if(!list.length)return;list.sort((a,b)=>a[0]-b[0]);const zoomA=clamp((700-CAM.dist)/160,0,1),boxes=[];
+  ovc.save();ovc.font='600 11px '+(UIS.font||(UIS.font=getComputedStyle(document.body).fontFamily));ovc.textAlign='center';
+  for(let i=0;i<Math.min(60,list.length);i++){const [d,u]=list[i];const c=UT[u.t].cat,p=toScreen(u.x,u.y+(c==='inf'?6.5:c==='air'?8:10),u.z);if(!p||p.x<0||p.y<0||p.x>innerWidth||p.y>innerHeight)continue;
+    const a=zoomA*clamp(1.6-Math.sqrt(d)/R,0,1);if(a<.05)continue;
+    const name=SHORT[u.t]||UT[u.t].name,vr=typeof vetRank==='function'?vetRank(u):0,txt=name+(vr?' '+'★'.repeat(vr):'');const w=Math.max(34,ovc.measureText(txt).width+12);if(boxes.some(q=>Math.abs(q[0]-p.x)<(q[2]+w)/2+2&&Math.abs(q[1]-p.y)<20))continue;boxes.push([p.x,p.y,w]);ovc.globalAlpha=a;
+    ovc.fillStyle='rgba(12,16,22,.72)';ovc.beginPath();if(ovc.roundRect)ovc.roundRect(p.x-w/2,p.y-15,w,16,5);else ovc.rect(p.x-w/2,p.y-15,w,16);ovc.fill();
+    ovc.fillStyle=TEAMS[ME].css;ovc.fillRect(p.x-w/2,p.y-15,3,16);ovc.fillStyle='#fff';ovc.fillText(txt,p.x+1,p.y-3);
+    const f=clamp(u.hp/u.max,0,1);ovc.fillStyle='rgba(0,0,0,.55)';ovc.fillRect(p.x-w/2+4,p.y+2,w-8,3);ovc.fillStyle=f>.6?'#86d9a0':f>.3?'#f2b33d':'#ff6d60';ovc.fillRect(p.x-w/2+4,p.y+2,(w-8)*f,3)}
+  ovc.restore()};
+const _openSettingsT=openSettings;openSettings=function(){_openSettingsT();const sw=$('swTog');if(!sw||$('utTog'))return;const on=unitTagsOn();
+  sw.closest('.grow').insertAdjacentHTML('afterend',`<div class="grow"><div><b>Unit labels up close</b><small>When the camera is near your units, show what each one is, its health and its veteran stars.</small></div><button class="tog ${on?'on':''}" id="utTog">${on?'On':'Off'}</button></div>`);
+  $('utTog').onclick=()=>{UIS.set.unitTags=!unitTagsOn();SAVE.lsSet('settings',UIS.set);openSettings()}};
 
 })();
 </script>

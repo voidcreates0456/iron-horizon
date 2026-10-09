@@ -1,15 +1,15 @@
 {
- "version": "4.4",
+ "version": "4.5",
  "notes": [
+  "Surrender: ends the match as a loss, but in ranked you keep the points you earned for kills, captures and buildings, minus the normal loss for your rank",
+  "Tactical and SEAD missiles store up to 3 shots: fire them back to back, then they reload one at a time",
+  "Army limit raised from 150 to 200 units",
+  "Unit labels: when the camera is near your units, each shows its type, health and veteran stars (can be turned off in Settings)",
+  "Thunder now rolls and cracks instead of sounding like a bomb",
+  "Smoother smoke: smoke pushed by a blast drifts and fades out smoothly instead of breaking into black specks or vanishing",
   "Blast physics: explosions throw smoke and dust outward, punch holes through rain, snow and fog, bend trees, kick up rubble, flip wrecks and throw soldiers",
   "Big blasts in bad weather clear a pocket for a while: units inside it spot enemies at their full range until the weather rolls back in",
-  "Heavy fog now rolls across the ground as drifting mist",
-  "Leaderboard: new My rank tab with everyone in your current rank, next to the Overall top 100",
-  "Bots keep their word: a bot that says it will attack one of your bases sends its army there, and one that promises money sends it later",
-  "Bots trade words when one takes another's base, then really go after it",
-  "Calmer chat: bots answer you right away, but their own chatter is limited to a couple of lines at a time and never repeats",
-  "Weather: rain, thunderstorms with lightning and thunder, snowfall and heavy fog change during the match and cut how far units spot enemies",
-  "Fixed: your name could show as Someone on the leaderboard"
+  "Heavy fog now rolls across the ground as drifting mist"
  ],
  "files": [
   "index.html",
