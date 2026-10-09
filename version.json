@@ -1,14 +1,15 @@
 {
- "version": "4.1",
+ "version": "4.4",
  "notes": [
-  "Every bot now has a hidden skill that never changes: skilled bots climb the ladder, weak bots that get lucky still play weak",
-  "High-skill bots play like strong players: they fire strikes and pump out troops as fast as cooldowns allow",
-  "Matchmaking puts you against your own rank, some from one rank below and the odd one above",
-  "240 bots on the ladder, and the top 100 Champions get a numbered placement",
-  "Ranked: survive 20 minutes for +100 points; lose after 20 minutes and you lose nothing. Leaving still costs points",
-  "Ranked matches open with an animated RANKED intro and a your-team-vs-enemies screen with every player's rank",
-  "New ranked calling cards with your rank badge; Platinum, Diamond, Champion and Top 100 are fully animated",
-  "New profile frames around the outside of your card: Deep space, Electric, Wildfire, Missile barrage and Rank rain"
+  "Blast physics: explosions throw smoke and dust outward, punch holes through rain, snow and fog, bend trees, kick up rubble, flip wrecks and throw soldiers",
+  "Big blasts in bad weather clear a pocket for a while: units inside it spot enemies at their full range until the weather rolls back in",
+  "Heavy fog now rolls across the ground as drifting mist",
+  "Leaderboard: new My rank tab with everyone in your current rank, next to the Overall top 100",
+  "Bots keep their word: a bot that says it will attack one of your bases sends its army there, and one that promises money sends it later",
+  "Bots trade words when one takes another's base, then really go after it",
+  "Calmer chat: bots answer you right away, but their own chatter is limited to a couple of lines at a time and never repeats",
+  "Weather: rain, thunderstorms with lightning and thunder, snowfall and heavy fog change during the match and cut how far units spot enemies",
+  "Fixed: your name could show as Someone on the leaderboard"
  ],
  "files": [
   "index.html",

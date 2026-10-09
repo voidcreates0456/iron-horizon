@@ -375,6 +375,26 @@ body.pre #chatWrap{display:none}
 .pfx-ranks::before{background:var(--pfx-ranks),linear-gradient(180deg,#1a1405,#4a3205);background-size:80px 80px,100% 100%;animation:pfxRain 2.2s linear infinite;box-shadow:0 0 22px rgba(255,214,107,.55)}
 @keyframes pfxRain{to{background-position:0 80px,0 0}}
 .pfxbtn{min-width:120px}#pfm .x{z-index:5}.pfxw.pfx-prof{margin-right:70px}.rkcards .ccard{height:64px}
+
+#gpCur{position:fixed;left:0;top:0;z-index:90;pointer-events:none;display:none;width:0;height:0}#gpCur.on{display:block}
+#gpCur i{position:absolute;left:-12px;top:-12px;width:24px;height:24px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.5),0 0 12px rgba(143,227,168,.85)}
+#gpCur i::after{content:'';position:absolute;left:9px;top:9px;width:2px;height:2px;background:#fff;border-radius:1px}
+#gpHint{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 112px);transform:translateX(-50%);z-index:20;padding:8px 14px;border-radius:999px;font-size:12.5px;max-width:92vw;text-align:center}#gpHint[hidden]{display:none}
+body.gp canvas{cursor:none}
+.report{margin-top:12px;padding:12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}.rh{font:800 20px var(--fd);margin-bottom:8px}
+.rtiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.rtile{padding:8px 10px;border-radius:9px;background:var(--hover)}.rtile b{display:block;font:800 22px/1.1 var(--fd);color:var(--ink)}.rtile span{font-size:12px;color:var(--ink2)}
+.rmvp{display:flex;gap:10px;align-items:center;margin-top:10px;padding:8px 10px;border-radius:9px;background:var(--hover)}.rstar{font-size:24px;color:#cdb57c}.rmvp b{display:block}.rmvp span{font-size:13px;color:var(--ink2)}
+.rch{margin-top:10px}.rct{font-weight:700;font-size:13px;margin-bottom:4px}.rcwrap{position:relative}
+.rtip{position:absolute;top:4px;min-width:130px;padding:6px 8px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);font-size:12px;box-shadow:var(--shadow);pointer-events:none}
+.rtip div{display:flex;align-items:center;gap:6px}.rtip span{margin-left:auto;font-weight:700}.rtip i,.rleg i{display:inline-block;width:10px;height:3px;border-radius:2px}
+.rleg{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--ink2);margin-top:4px}.rleg span{display:flex;align-items:center;gap:5px}
+@media (max-width:600px){.rtiles{grid-template-columns:repeat(2,1fr)}}
+
+.lbtabs{display:flex;gap:6px;margin:4px 0 2px}.lbtabs button{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--hover);font-weight:700;font-size:13px}
+.lbtabs button.on{background:var(--ink);color:var(--onink,#fff);border-color:var(--ink)}
+#wxFlash{position:fixed;inset:0;z-index:7;pointer-events:none;background:radial-gradient(ellipse at 50% 20%,rgba(235,240,255,.85),rgba(200,215,255,.25) 60%,transparent);opacity:0}
+#wxFlash.go{animation:wxF 1.1s ease-out}@keyframes wxF{0%{opacity:0}6%{opacity:.85}12%{opacity:.1}18%{opacity:.6}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){#wxFlash.go{animation:none}}
 #loading{position:fixed;inset:0;z-index:50;background:#1b211e;display:grid;place-items:center;color:#cfcbbd;font:600 18px var(--f)}
 @media (max-width:820px){
   .brand,.sep,#clock,#bHelp{display:none}
@@ -439,6 +459,7 @@ body.pre #top,body.pre #rail,body.pre #mini,body.pre #feed,body.pre #labels,body
 <div id="groups"></div>
 <div id="dipPop" class="glass" hidden></div>
 <div id="rkIntro" hidden></div>
+<div id="wxFlash"></div>
 <button id="sndBlock" class="glass" hidden>Sound is blocked by your browser. Tap here to turn it on.</button>
 <div id="streakFx" hidden>Kill streak! Double XP</div>
 <div id="chatWrap"><div id="chatLog"></div><div class="crow"><button id="chatHide" class="cch" title="Hide or show chat">Hide</button><button id="chatCh" class="cch">All</button><input id="chatIn" maxlength="160" placeholder="Press Enter to chat" aria-label="Chat message"><button id="chatBtn" class="cch" aria-label="Open chat">Chat</button></div></div>
@@ -472,7 +493,7 @@ body.pre #top,body.pre #rail,body.pre #mini,body.pre #feed,body.pre #labels,body
       <div class="lh">Unlocks</div><div id="unlocks"></div></div>
     <div id="tabMp" hidden><div class="netrow"><span class="netstat" id="netStat">Connecting</span></div><div id="lobby"></div><div id="friendsBox"></div></div>
     <div class="prof" id="prof"></div>
-    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 4.1 (skill ladder, Top 100, ranked intro)</div>
+    <div class="lnote" id="ver" style="margin-top:6px;opacity:.7">Version 4.4 (blast physics)</div>
     <div class="keys">
       <div><b>Left click or drag</b> select units</div><div><b>Right click</b> move or attack</div>
       <div><b>WASD or arrows</b> move camera</div><div><b>Wheel</b> zoom, <b>Q E</b> rotate, <b>R T</b> tilt</div>
@@ -1809,7 +1830,7 @@ function update(dt){
 function isArty(w){return w&&(w.fx==='arty'||w.fx==='artyRocket')}
 function retarget(u){
   const d=UT[u.t],w=d.w?WP[d.w]:null;if(!w){u.tgt=null;return}
-  const R=Math.max(d.sight,w.rng)*(isArty(w)?1:1.05);let best=null,bs=0;
+  const R=Math.max(d.sight*wxClearMul(u),w.rng)*(isArty(w)?1:1.05);let best=null,bs=0;
   forNear(u.x,u.z,R,e=>{if(e.dead||ally(e.team,u.team))return;if(e.air?!w.air:w.ground===0)return;if(!canSee(u.team,e))return;
     const dd=Math.sqrt(d2(u.x,u.z,e.x,e.z));if(dd>R)return;if(w.min&&dd<w.min)return;
     const eff=MULT[w.cls][UT[e.t].armor]+.04;let sc=eff*(dd<w.rng?2.2:1)/(dd+25);if(e.t==='drone')sc*=.6;if(e===u.tgt)sc*=1.25;
@@ -1883,7 +1904,7 @@ function fireLogic(u,tg,w,dt,cdk,noTurret){
     else{u.tAng=aim;if(!u.moving||cat==='air')u.ang=cat==='air'?u.ang+angDiff(u.ang,aim)*Math.min(1,dt*2):aim}}
   if(eff>w.rng||(w.min&&eff<w.min))return;
   if(u[cdk]>0)return;
-  u[cdk]=w.rof*rnd(.9,1.12)*(u.moving&&cat==='inf'?1.4:1);
+  u[cdk]=w.rof*rnd(.9,1.12)*(u.moving&&cat==='inf'?1.4:1)*(1-.08*vetRank(u));
   fireWeapon(u,tg,w)}
 
 function muzzle(src){const c=src.kind==='s';const a=src.tAng;const off=c?6:src.t==='tank'?8:src.t==='arty'?9:src.air?3:UT[src.t].cat==='inf'?1.5:4;
@@ -3854,7 +3875,7 @@ function initInput(){const cv=renderer.domElement;
   // phones only allow sound after a tap or key press, so try on every kind of input until it is running
   for(const ev of ['pointerdown','pointerup','click','touchend','keydown'])window.addEventListener(ev,()=>{if(!AU.ctx||AU.ctx.state!=='running')AU.init();audioBadge()},{capture:true});
   cv.addEventListener('contextmenu',e=>e.preventDefault());
-  cv.addEventListener('pointerdown',e=>{if(!started)return;cv.setPointerCapture(e.pointerId);UIS.pts.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,b:e.button,t:performance.now(),type:e.pointerType,moved:false});
+  cv.addEventListener('pointerdown',e=>{if(!started)return;try{cv.setPointerCapture(e.pointerId)}catch(_){}UIS.pts.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,b:e.button,t:performance.now(),type:e.pointerType,moved:false});
     if(e.pointerType==='touch'){if(UIS.pts.size===2){const [a,b]=[...UIS.pts.values()];UIS.pinch={d:Math.hypot(a.x-b.x,a.y-b.y),dist:CAM.tdist}}return}
     if(e.button===0)UIS.drag={x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,box:false};
     else if(e.button===2)command(e.clientX,e.clientY)});
@@ -4202,6 +4223,9 @@ function helpHTML(){return `<div style="columns:2 280px;column-gap:28px;font-siz
 <p><b>Walls and barriers.</b> In Build, pick a concrete wall ($500 per 100 m), Jersey barrier ($300) or tank blockers ($200), then click a start point and an end point near one of your bases. Walls and barriers stop enemy infantry and vehicles; tank blockers stop only vehicles. Your own units pass through as if through gates. Enemies that get stuck against them start shooting their way through.</p>
 <p><b>Friends.</b> In Multiplayer, share your 6-letter friend code and add your friends' codes. You can see when they are online or hosting, join their match, or invite them to yours.</p>
 <p><b>Saving.</b> Your level, rank, badges, cards and friends save on every change and when you leave a match (you still get XP for what you did). Updating the game keeps your progress. To move it between claude.ai, itch.io and the Windows app, use Backup code in Settings.</p>
+<p><b>New in 4.4.</b> Explosions push on the world. A blast throws smoke and dust outward, punches a hole through rain, snow and fog, bends nearby trees, kicks up rubble, flips wrecks and throws soldiers. In bad weather a big blast clears a pocket for a while: units inside it spot enemies at their full clear-weather range until the weather rolls back in.</p>
+<p><b>New in 4.3.</b> The leaderboard has a My rank tab with everyone in your current rank, next to the Overall top 100. Bots keep their word: when one says it will attack a base or send money later, it does. Bots also trade words with each other when one takes the other's base, then go after it. Chat stays readable: bots answer you right away, but their own chatter is limited to a couple of lines at a time. Weather changes during the match (rain, thunderstorms, snow, heavy fog); bad weather cuts how far units spot enemies.</p>
+<p><b>New in 4.2.</b> Controllers: plug in an Xbox, PlayStation or other gamepad. The right stick moves a cursor, A (✕) selects or clicks buttons (hold to drag a selection box), X (□) moves or attacks, Y (△) opens Build, B (○) goes back, the left stick pans, bumpers rotate, triggers zoom, the D-pad flips through menus (left and right) and your numbered units (up and down), and Menu (Options) opens the menu. Veterancy: units that score kills are promoted to Veteran (3 kills), Elite (7) and Heroic (14), each rank adding 10% health and faster reloads, shown as gold chevrons. Battle report: the end screen shows time survived, kills, captures, buildings, strikes, your largest army, your most valuable unit and a chart of bases held over time.</p>
 <p><b>New in 4.1.</b> Every bot has a hidden skill that never changes. Skilled bots climb the ladder; weak bots that get lucky still play weak. High-skill bots play like strong players: they fire strikes and pump out troops as fast as cooldowns allow. Matchmaking puts you against your own rank, some from one rank below and the odd one above. The top 100 Champions get a numbered placement. Ranked: survive 20 minutes for +100 points, and if you lose after 20 minutes you lose nothing; leaving still costs points. Ranked matches open with an intro showing every player's rank. New ranked calling cards show your rank badge, and profile frames add space, electric, fire, missile or rank-rain effects around the outside of your card.</p>
 <p><b>New in 4.0.</b> Units only capture the base they were sent to: a Command target, or their own attack group's target. Each attack group picks a base, fights for it, captures it, then moves on; other groups do not wander in. If an ally takes your target first, your units stop and hold. Bots understand much more (why are you attacking me, do you need help, where should we attack, are we winning, follow me, how much money, your level), notice when you repeat yourself, warm up to players who are nice to them, and no longer answer a plain "ok". New: titles to equip under your name and 24 more calling cards, most of them animated. Rank badges now match the ranks you really reached.</p>
 <p><b>New in 3.9.</b> MIRV (I): splits into six heavy warheads over the target. SEAD missile (G): hunts the nearest enemy AA, C-RAM, interceptor site or radar near where you aim and knocks out its electronics. Heavy gunship (Air menu): a tougher helicopter with long-range anti-tank rockets. Walls snap to the ends of your other walls, keep 15 degree angles and 10 m lengths; hold Shift to chain them and Alt to place freely. Destroyed walls clear away after a minute.</p>
@@ -4646,6 +4670,292 @@ const _rsp0=renderStartProfile;renderStartProfile=function(){_rsp0();const rk=$(
   const shield=c=>'<path d="M16 3l11 4.5v8.5c0 7-5 11.5-11 13.5C10 27.5 5 23 5 16V7.5z" fill="'+c+'" stroke="rgba(0,0,0,.4)"/>';
   const ranks=svg('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><g transform="translate(4 4) scale(.7)">'+shield('#ffd66b')+'</g><g transform="translate(44 30) scale(.6)">'+shield('#8ff0e0')+'</g><g transform="translate(14 50) scale(.55)">'+shield('#a8c8ff')+'</g><g transform="translate(52 2) scale(.45)">'+shield('#ff9a9a')+'</g></svg>');
   const st=document.createElement('style');st.textContent=`:root{--pfx-missile:${missile};--pfx-ranks:${ranks}}`;document.head.appendChild(st)})();
+
+// ================= VERSION 4.2: controller support, unit veterancy, battle report =================
+// ---------- veterancy: units that score kills get promoted ----------
+const VET=[{n:'Recruit',k:0},{n:'Veteran',k:3},{n:'Elite',k:7},{n:'Heroic',k:14}];
+function vetRank(u){const k=u.vk||0;return k>=14?3:k>=7?2:k>=3?1:0}
+const _killUnitV=killUnit;
+killUnit=function(u,by){if(by>=0&&G.T[by]&&!ally(by,u.team)&&!u.dead){let best=null,bd=1e18;
+    for(const s of G.u){if(s.dead||s.team!==by||s===u)continue;const d=d2(s.x,s.z,u.x,u.z);if(s.tgt===u&&d<bd){bd=d;best=s}}
+    if(!best)for(const s of G.u){if(s.dead||s.team!==by)continue;const w=UT[s.t].w&&WP[UT[s.t].w];if(!w)continue;const d=d2(s.x,s.z,u.x,u.z);if(d<(w.rng*1.1)**2&&d<bd){bd=d;best=s}}
+    if(best){const r0=vetRank(best);best.vk=(best.vk||0)+1;const r1=vetRank(best);
+      if(r1>r0){const f=1.1;best.max*=f;best.hp=Math.min(best.max,best.hp*f+best.max*.3);emit({e:'vet',u:best,r:r1,x:best.x,y:best.y,z:best.z,team:by});
+        if(G.T[by].human)feed(UT[best.t].name+' promoted to '+VET[r1].n+' ('+best.vk+' kills). +10% health, faster reload.',by,'good')}
+      const T=G.T[by];if(!T.mvp||best.vk>T.mvp.k)T.mvp={k:best.vk,t:best.t,id:best.id,r:r1}}}
+  return _killUnitV(u,by)};
+// gold chevrons over promoted units
+const _drawOverlayV=drawOverlay;
+drawOverlay=function(){_drawOverlayV();if(!started)return;const near=(CAM.dist*1.3+150)**2;
+  for(const u of G.u){if(u.dead||!u.vk||u.vk<3||!canSee(ME,u)||d2(u.x,u.z,CAM.tx,CAM.tz)>near)continue;const r=vetRank(u);const c=UT[u.t].cat;
+    const p=toScreen(u.x,u.y+(c==='inf'?6:c==='air'?7:9.5),u.z);if(!p||p.x<0||p.y<0||p.x>innerWidth||p.y>innerHeight)continue;
+    ovc.lineWidth=2;ovc.strokeStyle=r>=3?'#ffd66b':r>=2?'#e8cf8f':'#cdb57c';ovc.shadowColor='rgba(0,0,0,.7)';ovc.shadowBlur=3;
+    for(let i=0;i<r;i++){const y=p.y-i*4;ovc.beginPath();ovc.moveTo(p.x-5,y-3);ovc.lineTo(p.x,y);ovc.lineTo(p.x+5,y-3);ovc.stroke()}ovc.shadowBlur=0}};
+
+// ---------- battle history for the end-of-match report ----------
+function histTick(){if(!started||!G||G.over||G.phase!=='war')return;G.hist=G.hist||[];const last=G.hist[G.hist.length-1];if(last&&G.t-(G.warT||0)-last.t<15)return;
+  G.hist.push({t:G.t-(G.warT||0),z:G.T.map(T=>T.elim?0:T.have.zones),u:G.T.map(T=>T.elim?0:T.have.inf+T.have.veh+T.have.air)});if(G.hist.length>400)G.hist.splice(0,G.hist.length-400)}
+setInterval(()=>{try{histTick()}catch(e){}},1000);
+const _updateV=update;update=function(dt){_updateV(dt);if(G&&G.tick%30===0)try{histTick()}catch(e){}};
+function fmtT(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function reportHTML(){const T=G.T[ME];const peak=Math.max(0,...(G.hist||[]).map(h=>h.u[ME]||0));const surv=typeof survivedFor==='function'?survivedFor(T):G.t;const mvp=T.mvp;
+  const tile=(n,v)=>`<div class="rtile"><b>${v}</b><span>${n}</span></div>`;
+  return `<div class="report"><div class="rh">Battle report</div>
+    <div class="rtiles">${tile('Time survived',fmtT(surv))}${tile('Enemy units destroyed',T.kills.toLocaleString('en-US'))}${tile('Bases captured',T.st.capZ)}${tile('Buildings destroyed',T.st.killsS)}${tile('Strikes fired',T.st.mFired)}${tile('Largest army',peak)}</div>
+    ${mvp?`<div class="rmvp"><span class="rstar">★</span><div><b>Most valuable unit</b><span>${esc(UT[mvp.t].name)} with ${mvp.k} kills, rank ${VET[mvp.r].n}</span></div></div>`:''}
+    ${(G.hist||[]).length>=3?`<div class="rch"><div class="rct">Bases held over time</div><div class="rcwrap"><canvas id="repChart" height="170" aria-label="Line chart of bases held by each army over the match"></canvas><div class="rtip" id="repTip" hidden></div></div>
+      <div class="rleg">${G.T.map(o=>`<span><i style="background:${TEAMS[o.i].css}"></i>${esc(o.i===ME?'You':o.name||TEAMS[o.i].short)}</span>`).join('')}</div></div>`:''}</div>`}
+function drawReport(){const cv=$('repChart');if(!cv)return;const H=G.hist;const W=cv.parentElement.clientWidth||520;const dpr=Math.min(2,devicePixelRatio||1);cv.width=W*dpr;cv.height=170*dpr;cv.style.width=W+'px';cv.style.height='170px';
+  const c=cv.getContext('2d');c.scale(dpr,dpr);const ink=getComputedStyle(document.body).getPropertyValue('--ink2')||'#999';const grid=getComputedStyle(document.body).getPropertyValue('--line')||'rgba(128,128,128,.25)';
+  const L=34,R=W-64,Tp=10,B=170-24;const maxZ=Math.max(2,...H.flatMap(h=>h.z));const t1=H[H.length-1].t||1;const X=t=>L+(R-L)*t/t1,Y=z=>B-(B-Tp)*z/maxZ;
+  c.font='11px '+getComputedStyle(document.body).fontFamily;c.fillStyle=ink;c.strokeStyle=grid;c.lineWidth=1;
+  const step=maxZ>12?4:maxZ>6?2:1;for(let z=0;z<=maxZ;z+=step){c.beginPath();c.moveTo(L,Y(z)+.5);c.lineTo(R,Y(z)+.5);c.stroke();c.fillText(String(z),L-18,Y(z)+4)}
+  c.fillText('0:00',L,B+16);c.textAlign='right';c.fillText(fmtT(t1),R,B+16);c.textAlign='left';
+  const ends=[];for(const o of G.T){c.strokeStyle=TEAMS[o.i].css;c.lineWidth=o.i===ME?2.5:2;c.lineJoin='round';c.beginPath();H.forEach((h,i)=>{const x=X(h.t),y=Y(h.z[o.i]||0);i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();
+    ends.push({y:Y(H[H.length-1].z[o.i]||0),n:o.i===ME?'You':(TEAMS[o.i].short||o.name),col:TEAMS[o.i].css})}
+  // direct labels at the line ends, nudged apart so they never overlap
+  ends.sort((a,b)=>a.y-b.y);for(let i=1;i<ends.length;i++)if(ends[i].y-ends[i-1].y<12)ends[i].y=ends[i-1].y+12;
+  for(const e of ends){c.fillStyle=e.col;c.fillRect(R+5,e.y-1,6,2);c.fillStyle=ink;c.fillText(e.n.slice(0,9),R+14,e.y+4)}
+  const tip=$('repTip');cv.onpointermove=ev=>{const r=cv.getBoundingClientRect(),mx=ev.clientX-r.left;if(mx<L||mx>R){tip.hidden=true;return}const t=(mx-L)/(R-L)*t1;let hi=0;H.forEach((h,i)=>{if(Math.abs(h.t-t)<Math.abs(H[hi].t-t))hi=i});
+    const h=H[hi];tip.hidden=false;tip.style.left=Math.min(W-150,X(h.t)+8)+'px';tip.innerHTML=`<b>${fmtT(h.t)}</b>`+G.T.map(o=>`<div><i style="background:${TEAMS[o.i].css}"></i>${esc(o.i===ME?'You':o.name||TEAMS[o.i].short)}<span>${h.z[o.i]||0}</span></div>`).join('')};
+  cv.onpointerleave=()=>{tip.hidden=true}}
+const _showEndV=showEnd;
+showEnd=function(w,why){_showEndV(w,why);setTimeout(()=>{try{histTick();const b=$('endBody');if(!b||b.querySelector('.report'))return;b.insertAdjacentHTML('beforeend',reportHTML());drawReport()}catch(e){console.error(e)}},120)};
+
+// ---------- controller support ----------
+const GP={on:false,cx:0,cy:0,prev:[],t:0,ps:false,downA:false,hintT:0};
+function gpCursor(){let el=$('gpCur');if(!el){el=document.createElement('div');el.id='gpCur';el.innerHTML='<i></i>';document.body.appendChild(el);
+    const h=document.createElement('div');h.id='gpHint';h.className='glass';h.hidden=true;document.body.appendChild(h)}return el}
+function gpLabels(){return GP.ps?{a:'✕',b:'○',x:'□',y:'△',lb:'L1',rb:'R1',lt:'L2',rt:'R2',st:'Options',bk:'Share'}:{a:'A',b:'B',x:'X',y:'Y',lb:'LB',rb:'RB',lt:'LT',rt:'RT',st:'Menu',bk:'View'}}
+function gpHint(show){const h=$('gpHint');if(!h)return;const L=gpLabels();h.innerHTML=`<b>Controller</b> ${L.a} select (hold to box) · ${L.x} move or attack · ${L.y} build · ${L.b} back · ${L.lb}/${L.rb} rotate · ${L.lt}/${L.rt} zoom · D-pad menus and units · ${L.st} menu`;
+  h.hidden=!show;if(show){clearTimeout(GP.hintH);GP.hintH=setTimeout(()=>{h.hidden=true},9000)}}
+function gpPtr(type,button,target){const t=target||renderer.domElement;t.dispatchEvent(new PointerEvent(type,{clientX:GP.cx,clientY:GP.cy,pointerId:77,pointerType:'mouse',button,buttons:type==='pointerup'?0:button===2?2:1,bubbles:true,cancelable:true}))}
+function gpKey(key){window.dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true}));window.dispatchEvent(new KeyboardEvent('keyup',{key,bubbles:true}))}
+function gpUnder(){const el=gpCursor();el.style.display='none';const t=document.elementFromPoint(GP.cx,GP.cy);el.style.display='';return t}
+function gpRail(dir){const bs=[...document.querySelectorAll('#rail button[data-cat]')].filter(b=>b.offsetParent);if(!bs.length)return;const cur=bs.findIndex(b=>b.dataset.cat===UIS.cat);const n=bs[(cur+dir+bs.length)%bs.length];n.click()}
+function gpUnits(dir){const qs=(UIS.squads||[]).filter(q=>squadLive(q).length);if(qs.length){GP.sq=((GP.sq===undefined?-1:GP.sq)+dir+qs.length)%qs.length;selectSquad(qs[GP.sq]);if(typeof renderGroups==='function')renderGroups();return}
+  const zs=G.Z.filter(z=>z.owner===ME);if(!zs.length)return;GP.zi=((GP.zi===undefined?-1:GP.zi)+dir+zs.length)%zs.length;CAM.ttx=zs[GP.zi].x;CAM.ttz=zs[GP.zi].z;AU.ui('click')}
+function gpTick(){const pads=navigator.getGamepads?[...navigator.getGamepads()]:[];const g=pads.find(p=>p&&p.connected&&p.buttons.length>=12);const now=performance.now();const dt=Math.min(.05,(now-(GP.t||now))/1000);GP.t=now;
+  const el=gpCursor();if(!g){if(GP.on){GP.on=false;el.classList.remove('on');document.body.classList.remove('gp')}return}
+  const ax=i=>{const v=g.axes[i]||0;return Math.abs(v)<.16?0:(v-Math.sign(v)*.16)/.84};const btn=i=>!!(g.buttons[i]&&g.buttons[i].pressed),val=i=>g.buttons[i]?g.buttons[i].value:0;
+  const pressed=i=>btn(i)&&!GP.prev[i];const released=i=>!btn(i)&&GP.prev[i];
+  const any=g.buttons.some(b=>b.pressed)||g.axes.some(a=>Math.abs(a)>.3);
+  if(any&&!GP.on){GP.on=true;GP.ps=/054c|dualsense|dualshock|playstation/i.test(g.id)||(/wireless controller/i.test(g.id)&&!/xbox|xinput/i.test(g.id));if(!GP.cx){GP.cx=innerWidth/2;GP.cy=innerHeight/2}el.classList.add('on');document.body.classList.add('gp');gpHint(true);
+    if(typeof banner==='function')banner('Controller connected',GP.ps?'PlayStation layout':'Xbox layout',1.6)}
+  if(!GP.on){GP.prev=g.buttons.map(b=>b.pressed);return}
+  // right stick (and left stick outside a match) moves the cursor
+  let mx=ax(2),my=ax(3);if(!started){mx+=ax(0);my+=ax(1)}const mag=Math.min(1,Math.hypot(mx,my));
+  if(mag>0){const sp=1100*Math.pow(mag,1.6)*dt/Math.max(.01,mag);GP.cx=clamp(GP.cx+mx*sp,2,innerWidth-2);GP.cy=clamp(GP.cy+my*sp,2,innerHeight-2);if(started)gpPtr('pointermove',-1)}
+  el.style.transform=`translate(${GP.cx}px,${GP.cy}px)`;
+  if(started){
+    // left stick pans like WASD, bumpers rotate, triggers zoom
+    const f=-ax(1),r=ax(0);if(f||r){const s=CAM.tdist*1.15*dt;CAM.ttx=clamp(CAM.ttx+(-Math.sin(CAM.yaw)*f+Math.cos(CAM.yaw)*r)*s,-(HALF-40),HALF-40);CAM.ttz=clamp(CAM.ttz+(-Math.cos(CAM.yaw)*f-Math.sin(CAM.yaw)*r)*s,-(HALF-40),HALF-40)}
+    if(btn(4))CAM.tyaw+=dt*1.6;if(btn(5))CAM.tyaw-=dt*1.6;
+    const z=val(6)-val(7);if(Math.abs(z)>.05)CAM.tdist=clamp(CAM.tdist*Math.pow(1.9,z*dt*2),90,2100)}
+  // A: click whatever is under the cursor; on the battlefield, press and hold to drag a selection box
+  if(pressed(0)){const t=gpUnder();if(started&&t===renderer.domElement){gpPtr('pointerdown',0);GP.downA=true}
+    else if(t){const c=t.closest('button,a,[role=button],[data-sq],[data-card],[data-title],[data-pfx],.card-u,.ccard,.bcard,label,select')||t;if(c.tagName==='INPUT'||c.tagName==='TEXTAREA'){c.focus()}else c.click();AU.ui&&AU.ui('click')}}
+  if(released(0)&&GP.downA){GP.downA=false;gpPtr('pointerup',0)}
+  if(pressed(2)&&started&&gpUnder()===renderer.domElement){gpPtr('pointerdown',2);gpPtr('pointerup',2)}
+  if(pressed(1)){if(!$('rkIntro').hidden)$('rkIntro').click();else gpKey('Escape')}
+  if(pressed(3)&&started)toggleFly('build');
+  if(pressed(9)){if(started){if($('menu').hidden)openMenu();else closeMenu()}}
+  if(pressed(8)&&started&&typeof openPlayers==='function')openPlayers();
+  if(pressed(14)&&started)gpRail(-1);if(pressed(15)&&started)gpRail(1);
+  if(pressed(12)&&started)gpUnits(-1);if(pressed(13)&&started)gpUnits(1);
+  if(pressed(10)&&started&&typeof selectAllArmy==='function')selectAllArmy();
+  if(pressed(11)&&started&&G.sel.length){let x=0,zz=0;for(const e of G.sel){x+=e.x;zz+=e.z}CAM.ttx=x/G.sel.length;CAM.ttz=zz/G.sel.length}
+  if(any)GP.idle=0;GP.prev=g.buttons.map(b=>b.pressed)}
+(function gpLoop(){try{gpTick()}catch(e){}requestAnimationFrame(gpLoop)})();
+window.addEventListener('gamepadconnected',()=>{gpCursor()});
+window.addEventListener('mousemove',()=>{if(GP.on&&!GP.downA){GP.on=false;const el=$('gpCur');if(el)el.classList.remove('on');document.body.classList.remove('gp')}});
+
+// ================= VERSION 4.3: leaderboard tabs, calm chat, kept promises, bot rivalries, weather =================
+// ---------- leaderboard: "My rank" tab and "Overall" tab ----------
+function lbRows(){const p=P_();const me={n:myName()+' (you)',rp:p.rp,lvl:p.lvl,w:p.rw,l:p.rl,me:1};return botRoster().map(x=>({n:x.n,rp:x.rp,lvl:x.lvl,w:x.w,l:x.l,bot:1,id:x.id})).concat([me]).sort((a,c)=>c.rp-a.rp)}
+function myName(){const n=NET.nick||(typeof nameOf==='function'?nameOf(NET.myId):'');return !n||n==='Someone'?'You':n}
+leaderboardHTML=function(){const p=P_();noteTop100();UIS.lbTab=UIS.lbTab||'rank';const all=lbRows();const r=rankOf(p.rp);
+  const row=(x,i)=>`<tr class="${x.me?'meRow':''}" ${x.bot?'data-bot="'+x.id+'"':''}><td>${i+1}</td><td style="text-align:left">${esc(x.n)}${x.bot?' <small class="botTag">bot</small>':''}</td><td>${rankBadge(x.rp,22)} ${rankLabel(x.rp,x.me,x.id)}</td><td>${x.rp.toLocaleString('en-US')}</td><td>${x.lvl}</td><td>${x.w}</td></tr>`;
+  let list,head,mi;
+  if(UIS.lbTab==='rank'){list=all.filter(x=>rankOf(x.rp)===r);mi=list.findIndex(x=>x.me);head=`<b>${RANKS[r].n}</b>: ${list.length} commanders share your rank. You are #${mi+1} of them.${r<5?' '+(RANKS[r+1].rp-p.rp).toLocaleString('en-US')+' points to '+RANKS[r+1].n+'.':''}`}
+  else{list=all;mi=list.findIndex(x=>x.me);const nCh=champList().length;head=`${nCh===1?'1 commander is':nCh+' commanders are'} in Champion; the top 100 get a numbered placement. You are #${mi+1} overall.`}
+  const body=list.slice(0,100).map(row).join('')+(mi>=100?row(list[mi],mi):'');
+  return `<div class="lbtabs" role="tablist"><button role="tab" data-lbt="rank" class="${UIS.lbTab==='rank'?'on':''}">${rankBadge(p.rp,18)} My rank</button><button role="tab" data-lbt="all" class="${UIS.lbTab==='all'?'on':''}">Overall</button></div>
+    <div class="lnote" style="color:var(--ink2);margin:6px 0">${seasonLine()} ${head}</div><table class="as lb"><thead><tr><th>#</th><th>Commander</th><th>Rank</th><th>Points</th><th>Level</th><th>Wins</th></tr></thead><tbody>${body}</tbody></table>`};
+function renderLB(){const b=$('lbBody');b.innerHTML=leaderboardHTML();b.querySelectorAll('[data-lbt]').forEach(t=>t.onclick=()=>{UIS.lbTab=t.dataset.lbt;renderLB();AU.ui('click')});
+  b.querySelectorAll('tr[data-bot]').forEach(r=>r.onclick=()=>showProfile('bot',+r.dataset.bot));const me=b.querySelector('tr.meRow');if(me)me.onclick=()=>showProfile('me')}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-lbt]');if(t){UIS.lbTab=t.dataset.lbt;renderLB();AU.ui('click');return}
+  const lb=e.target.closest&&e.target.closest('#lbBtn');if(lb){setTimeout(renderLB,0)}},true);
+
+// ---------- calm chat: bots never flood the chat ----------
+// Replies to a player always get through (one per bot every 1.5 s). Everything else bots say on their own
+// is limited to 2 lines per 12 seconds across all bots, 1 per bot per 25 seconds, and no repeats.
+const CHATQ={bot:[],last:{},said:[],want:{}};
+function wantReply(b){CHATQ.want[b]=performance.now()}
+const _chatPostQ=chatPost;
+chatPost=function(team,text,ch){const T=team>=0&&G.T[team];if(!T||T.human)return _chatPostQ(team,text,ch);
+  const now=performance.now();const t=String(text);CHATQ.bot=CHATQ.bot.filter(x=>now-x<12000);CHATQ.said=CHATQ.said.filter(x=>now-x.at<45000);
+  if(CHATQ.said.some(x=>x.t===t.toLowerCase()))return null;
+  const reply=now-(CHATQ.want[team]||0)<10000;const lastB=CHATQ.last[team]||0;
+  if(reply){if(now-lastB<1500)return null}else{if(CHATQ.bot.length>=2||now-lastB<25000||(G.over&&!/gg/i.test(t)))return null}
+  CHATQ.bot.push(now);CHATQ.last[team]=now;CHATQ.said.push({t:t.toLowerCase(),at:now});const m=_chatPostQ(team,text,ch);if(m)keepPromise(team,t,ch);return m};
+// mark who each bot is answering, so its reply gets through and promises point at the right player
+const _replyFromQ=replyFrom;replyFrom=function(b,h,kind,ch,text,delay,named){wantReply(b);TK.talkTo=TK.talkTo||{};TK.talkTo[b]=h;const r=_replyFromQ(b,h,kind,ch,text,delay,named);
+  // answering a threat, an enemy bot sometimes makes a concrete promise, and keepPromise makes it real
+  const A1=TK.arg&&TK.arg[b+'_'+h];if((kind==='threat'||kind==='insult')&&!ally(b,h)&&!(A1&&A1.mute>G.t)&&Math.random()<.5){const own=tkBases(b)[0];const z=G.Z.filter(q=>q.owner===h).sort((a,c)=>own?d2(a.x,a.z,own.x,own.z)-d2(c.x,c.z,own.x,own.z):0)[0];
+    if(z)setTimeout(()=>{if(G.T[b].elim)return;wantReply(b);sayAs(b,pick(['and i am coming for '+z.name,z.name+' is next','see you at '+z.name,'my tanks are heading to '+z.name+' now','i will take '+z.name+' for that']),ch)},2600+(delay||0))}
+  return r};
+const _askMoneyQ=askMoney;askMoney=function(from,to,amt,viaChat){wantReply(to);return _askMoneyQ(from,to,amt,viaChat)};
+const _chatInQ=chatIncoming;chatIncoming=function(team,text,ch){for(const o of G.T)if(!o.human&&!o.elim&&(ch!=='team'||ally(o.i,team))){TK.talkTo=TK.talkTo||{};TK.talkTo[o.i]=team}
+  const tl=' '+String(text).toLowerCase()+' ';for(const o of G.T)if(!o.human){const nm=o.name.toLowerCase().replace(/[^a-z0-9]/g,'');if(nm.length>2&&tl.replace(/[^a-z0-9 ]/g,'').includes(' '+nm))wantReply(o.i)}
+  // a question or direct line to the channel lets up to two bots answer
+  const cand=G.T.filter(o=>!o.human&&!o.elim&&(ch==='team'?ally(o.i,team):true));for(const o of cand)CHATQ.want[o.i]=performance.now()-6000;
+  return _chatInQ(team,text,ch)};
+
+// ---------- kept promises: when a bot says it will do something, it does ----------
+const ATK_RE=/\b(coming for|attack|attacking|hit|hitting|take|taking|push|pushing|heading to|moving on|rotating to|sending everything|see you at|your base is next|bases are ours|we take it back|we are coming|next objective|is next)\b/;
+const DEF_RE=/\b(on my way|sending (some )?(tanks|aa|troops|help|backup)|coming to help|defending|hold(ing)? .*for you|protect)\b/;
+function zoneInText(t){const l=t.toLowerCase();let best=null;for(const z of G.Z){const n=z.name.toLowerCase();if(l.includes(n)&&(!best||n.length>best.name.length))best=z}return best}
+function keepPromise(b,text,ch){if(NET.role==='client')return;const B=G.T[b];if(!B||B.human||B.elim||!B.A)return;const t=text.toLowerCase();const h=TK.talkTo&&TK.talkTo[b];let z=zoneInText(t);
+  if(ATK_RE.test(t)){if(!z||ally(z.owner,b)){if(h!==undefined&&!ally(h,b)){const own=tkBases(b)[0];z=G.Z.filter(q=>q.owner===h).sort((a,c)=>own?d2(a.x,a.z,own.x,own.z)-d2(c.x,c.z,own.x,own.z):0)[0]}else z=null}
+    if(z&&!ally(z.owner,b)){B.A.focus=z.id;B.A.push=0;TK.prom=(TK.prom||[]).filter(p=>p.b!==b);TK.prom.push({b,z:z.id,kind:'atk',at:G.t,until:G.t+300,h});return}}
+  if(DEF_RE.test(t)&&h!==undefined&&ally(h,b)){const tz=z&&ally(z.owner,h)?z:G.Z.filter(q=>q.owner===h).sort((a,c)=>((c.threat&&c.threat[h])||0)-((a.threat&&a.threat[h])||0))[0];
+    if(tz){sendHelp(b,tz);TK.prom=(TK.prom||[]).filter(p=>p.b!==b);TK.prom.push({b,z:tz.id,kind:'def',at:G.t,until:G.t+180,h})}}}
+// move part of a bot's army to defend a friendly base
+function sendHelp(b,z){const us=G.u.filter(u=>!u.dead&&u.team===b&&!u.air&&u.t!=='engineer'&&UT[u.t].w).sort((a,c)=>d2(a.x,a.z,z.x,z.z)-d2(c.x,c.z,z.x,z.z)).slice(0,10);
+  for(const u of us){u.role=null;const a=rnd(0,TAU),r=Math.sqrt(Math.random())*z.r*.6;u.order={type:'amove',x:z.x+Math.cos(a)*r,z:z.z+Math.sin(a)*r}}}
+// follow-through: a bot that keeps its word says so (rarely, and only when it really happened)
+function promiseTick(){if(!TK.prom||!TK.prom.length)return;for(let i=TK.prom.length-1;i>=0;i--){const p=TK.prom[i];const z=G.Z.find(q=>q.id===p.z);const B=G.T[p.b];
+  if(!z||B.elim||G.t>p.until){TK.prom.splice(i,1);continue}
+  if(p.kind==='atk'&&z.owner===p.b){TK.prom.splice(i,1);if(Math.random()<.7)sayAs(p.b,voice(B.persona||'chill',pick(['told you i would take '+z.name,z.name+' is mine, just like i said','promised '+z.name+'. delivered']).replace('{z}',z.name)),'all');continue}
+  if(p.kind==='atk'&&B.A.focus!==p.z)B.A.focus=p.z}}
+
+// ---------- bot rivalries: bots react to each other ----------
+function rivalEvent(e){if(NET.role==='client'||!G||G.phase!=='war')return;if(e.e!=='capture'||e.old<0||e.t<0)return;const A=G.T[e.t],B=G.T[e.old];if(!A||!B||A.human||B.human||B.elim)return;
+  TK.riv=TK.riv||{};const k=Math.min(e.t,e.old)+'_'+Math.max(e.t,e.old);if((TK.riv[k]||0)>G.t||Math.random()>.45)return;TK.riv[k]=G.t+90;
+  const z=e.z;const pa=A.persona||'chill',pb=B.persona||'chill';
+  const taunt={salty:['thanks for '+z.name+', '+B.name,B.name+', your defense at '+z.name+' was a joke','ez '+z.name],chill:['sorry '+B.name+', needed '+z.name,'gg on '+z.name+', '+B.name],tryhard:[z.name+' secured. '+B.name+', you are next'],friendly:['oops, took '+z.name+', '+B.name+'!']}[pa];
+  const back={salty:['enjoy it while it lasts, '+A.name+'. coming for '+z.name,'that was lag. i am taking '+z.name+' back','you will regret that, '+A.name],chill:['fair, but i want '+z.name+' back','nice one '+A.name+'. i will be back for '+z.name],tryhard:['retaking '+z.name+' now','noted, '+A.name+'. counterattack on '+z.name],friendly:['hey! i want '+z.name+' back!']}[pb];
+  const allyPair=ally(e.t,e.old);if(allyPair)return;
+  wantReply(e.t);sayAs(e.t,voice(pa,pick(taunt)),'all');setTimeout(()=>{if(!B.elim){wantReply(e.old);TK.talkTo=TK.talkTo||{};TK.talkTo[e.old]=e.t;sayAs(e.old,voice(pb,pick(back)),'all')}},3200)}
+
+// ---------- weather ----------
+const WX={clear:{n:'Clear skies',sight:1,fog:1},rain:{n:'Rain',sight:.9,fog:.75,drops:'rain'},storm:{n:'Thunderstorm',sight:.8,fog:.6,drops:'rain',bolt:1},snow:{n:'Snowfall',sight:.85,fog:.6,drops:'snow'},fog:{n:'Heavy fog',sight:.7,fog:.32}};
+const WX_ORDER=['clear','clear','rain','clear','storm','snow','fog','rain','clear'];
+function wxAt(t){const R=mulberry((G.seed||1)*13+Math.floor(t/420));return WX_ORDER[(R()*WX_ORDER.length)|0]}
+const WXS={cur:null,base:null,pts:null,flash:0};
+function wxApply(k){if(WXS.cur===k)return;const prev=WXS.cur;WXS.cur=k;G.weather=k;
+  if(!WXS.base){WXS.base={};for(const t in UT)WXS.base[t]=UT[t].sight}for(const t in UT)UT[t].sight=WXS.base[t]*WX[k].sight;
+  if(prev!==null&&started)feed('Weather: '+WX[k].n+'.'+(WX[k].sight<1?' Units spot enemies '+Math.round((1-WX[k].sight)*100)+'% later.':''),ME,'info');
+  wxParticles(WX[k].drops)}
+function wxParticles(kind){if(typeof scene==='undefined'||!scene)return;if(WXS.pts){scene.remove(WXS.pts);WXS.pts.geometry.dispose();WXS.pts=null}if(!kind)return;
+  const n=window.IH_MOBILE?900:2400,g=new THREE.BufferGeometry(),p=new Float32Array(n*3);for(let i=0;i<n;i++){p[i*3]=rnd(-260,260);p[i*3+1]=rnd(0,220);p[i*3+2]=rnd(-260,260)}
+  g.setAttribute('position',new THREE.BufferAttribute(p,3));const m=new THREE.PointsMaterial({color:kind==='snow'?0xffffff:0xaec4d8,size:kind==='snow'?2.6:1.4,transparent:true,opacity:kind==='snow'?.9:.55,depthWrite:false});
+  WXS.pts=new THREE.Points(g,m);WXS.pts.frustumCulled=false;WXS.kind=kind;scene.add(WXS.pts)}
+function wxFrame(dt){if(!started||!G)return;const k=wxAt(G.t);if(k!==WXS.cur)wxApply(k);const W=WX[k];
+  if(WXS.pts){const a=WXS.pts.geometry.attributes.position,p=a.array,sp=WXS.kind==='snow'?18:160,dr=WXS.kind==='snow'?6:12,cx=CAM.tx,cz=CAM.tz,gh=hAt(cx,cz);WXS.pts.position.set(cx,gh,cz);
+    for(let i=0;i<p.length;i+=3){p[i+1]-=sp*dt;p[i]+=Math.sin((p[i+1]+i)*.02)*dr*dt*(WXS.kind==='snow'?1:.2);if(p[i+1]<0){p[i+1]=220;p[i]=rnd(-260,260);p[i+2]=rnd(-260,260)}}a.needsUpdate=true}
+  if(W.bolt){WXS.flash-=dt;if(WXS.flash<=0){WXS.flash=rnd(7,18);const f=$('wxFlash');if(f){f.classList.remove('go');void f.offsetWidth;f.classList.add('go')}
+    setTimeout(()=>{if(AU.ready&&AU.ready()){const a=rnd(0,TAU);AU.boom(1.6,CAM.tx+Math.cos(a)*900,0,CAM.tz+Math.sin(a)*900)}},rnd(400,1600))}}}
+const _updateSkyW=updateSky;updateSky=function(...a){_updateSkyW(...a);if(G&&G.weather&&scene.fog){const f=WX[G.weather].fog;scene.fog.near*=f;scene.fog.far*=Math.max(.45,f+.15)}};
+(function wxLoop(){let last=performance.now();const tick=()=>{const now=performance.now();try{wxFrame(Math.min(.1,(now-last)/1000))}catch(e){}last=now;requestAnimationFrame(tick)};requestAnimationFrame(tick)})();
+
+// ---------- event hooks and timers ----------
+(function(){const _ev=typeof talkEvent==='function'?talkEvent:null;talkEvent=function(e){if(_ev)_ev(e);try{rivalEvent(e)}catch(_){}}})();
+setInterval(()=>{try{if(started&&G&&!G.over)promiseTick()}catch(e){}},2000);
+
+// ===================== 4.4: interactive blast physics =====================
+// Explosions push on the world around them: they blow holes in fog, rain and snow, shove smoke,
+// bend trees, toss wrecks, rubble and soldiers, and a big blast in bad weather clears a pocket
+// where units can spot normally for a while.
+const PH={pk:[],lean:new Set(),rag:[],recent:[],v:null,wispAcc:0,wisps:0};
+function phNow(){return performance.now()/1000}
+// pocket radius over its life: expands with the shock front, holds, then the weather rolls back in
+function pkR(p,now){const a=now-p.t;if(a<0||a>p.life)return 0;const grow=Math.min(1,a/.6),fade=a>p.life*.7?1-(a-p.life*.7)/(p.life*.3):1;return p.r*grow*fade}
+function badWeather(){return !!(G&&G.weather&&G.weather!=='clear')}
+function pkSize(r){return Math.min(170,r*3+20)}
+function pkLife(r){return 18+r*.25}
+
+// gameplay pocket (host only): units inside a cleared pocket spot at their clear-weather range
+function wxClearMul(u){if(!G||!G.wxPk||!G.wxPk.length||!badWeather())return 1;const W=WX[G.weather];if(!W||W.sight>=1)return 1;
+  for(const p of G.wxPk){const R=pkR(p,G.t);if(R>0&&d2(u.x,u.z,p.x,p.z)<R*R)return 1/W.sight}return 1}
+const _blastPH=blast;blast=function(x,y,z,r,dmg,cls,team,o){_blastPH(x,y,z,r,dmg,cls,team,o);
+  try{if(r>=10&&badWeather()){if(!G.wxPk)G.wxPk=[];G.wxPk=G.wxPk.filter(p=>G.t-p.t<p.life);G.wxPk.push({x,z,r:pkSize(r),t:G.t,life:pkLife(r)});if(G.wxPk.length>24)G.wxPk.shift()}}catch(e){}};
+
+// the shock wave itself (runs on every screen, host and clients, from the boom event)
+function physBlast(x,y,z,r,air){if(typeof scene==='undefined'||!scene||!G)return;const now=phNow();
+  const R=Math.max(16,Math.min(r*3.2,260)),P=Math.min(140,18+r*4.2);
+  PH.recent.push({x,y,z,r,t:now});if(PH.recent.length>30)PH.recent.shift();
+  // 1. smoke, dust and fog already in the air gets thrown outward
+  if(PS_SMOKE){const D=PS_SMOKE;for(let i=0;i<D.hi;i++){if(D.life[i]<=0)continue;const dx=D.x[i]-x,dy=D.y[i]-y,dz=D.z[i]-z,dd=Math.hypot(dx,dz);if(dd>R||Math.abs(dy)>R)continue;
+    const f=1-dd/R,k=P*f/(dd||1);D.vx[i]+=dx*k;D.vz[i]+=dz*k;D.vy[i]+=P*f*.25;if(D.k[i]===9)D.life[i]=Math.min(D.life[i],D.age[i]+1.2+3*(1-f))}}
+  // 2. rain and snow get punched out of the way
+  if(WXS.pts&&PH.v){const a=WXS.pts.geometry.attributes.position.array,O=WXS.pts.position,v=PH.v,RR=R*1.5;
+    for(let i=0;i<a.length;i+=3){const dx=a[i]+O.x-x,dz=a[i+2]+O.z-z,dy=a[i+1]+O.y-y,dd=Math.hypot(dx,dz);if(dd>RR||dy>RR*1.4)continue;const f=1-dd/RR,k=P*1.6*f/(dd||1);v[i]+=dx*k;v[i+2]+=dz*k;v[i+1]+=P*f*(WXS.kind==='snow'?.9:.3)}}
+  if(badWeather()&&r>=8){PH.pk.push({x,z,r:pkSize(r),t:now,life:pkLife(r)});if(PH.pk.length>16)PH.pk.shift()}
+  if(air&&y-hAt(x,z)>R)return;
+  // 3. trees bend away from the blast and sway back
+  if(typeof treesNear==='function'&&TGRID&&r>=3)treesNear(x,z,R*.9,t=>{if(!t.alive)return;const dx=t.x-x,dz=t.z-z,dd=Math.hypot(dx,dz)||1;const f=1-dd/(R*.9);if(f<=0)return;
+    const A=Math.min(.75,.06+r/55)*f;if(t.la&&now-t.lt<.4&&t.la>A)return;t.lx=dx/dd;t.lz=dz/dd;t.la=A;t.lt=now;if(PH.lean.size<500)PH.lean.add(t)});
+  // 4. loose rubble on the ground gets kicked up again
+  if(typeof DEB!=='undefined'&&DEB)for(const d of DEB.a){if(d.life<=0)continue;const dx=d.x-x,dz=d.z-z,dd=Math.hypot(dx,dz);if(dd>R*.7)continue;const f=1-dd/(R*.7);
+    d.rest=0;d.vx+=dx/(dd||1)*P*.35*f;d.vz+=dz/(dd||1)*P*.35*f;d.vy+=rnd(6,14)*f+r*.15*f;d.age=Math.min(d.age,d.life-4)}
+  // 5. wrecks get flipped or shoved, bodies get pushed
+  let tossed=0;for(let i=REN.wrecks.length-1;i>=0;i--){const w=REN.wrecks[i],g=w.g,dx=g.position.x-x,dz=g.position.z-z,dd=Math.hypot(dx,dz)||1;if(dd>R*.8)continue;const f=1-dd/(R*.8);
+    if(r>=12&&dd<r*1.3&&tossed<5){tossed++;REN.wrecks.splice(i,1);const sp=Math.min(26,r*.5)*f+4;REN.flying.push({g,vx:dx/dd*sp,vy:Math.min(30,6+r*.6)*f+6,vz:dz/dd*sp,rx:rnd(-3,3)*f,rz:rnd(-3,3)*f})}
+    else{const s=Math.min(5,r*.12)*f;g.position.x+=dx/dd*s;g.position.z+=dz/dd*s;g.position.y=hAt(g.position.x,g.position.z);g.rotation.y+=rnd(-.3,.3)*f}}
+  for(const d of REN.deaths){if(d.kind!=='inf'||d.fly)continue;const g=d.g,dx=g.position.x-x,dz=g.position.z-z,dd=Math.hypot(dx,dz)||1;if(dd>R*.6)continue;const f=1-dd/(R*.6);
+    if(r>=8&&dd<r)d.fly={vx:dx/dd*Math.min(22,r*.6)*f,vy:Math.min(16,4+r*.35)*f,vz:dz/dd*Math.min(22,r*.6)*f,spin:rnd(-6,6)};else{g.position.x+=dx/dd*2*f;g.position.z+=dz/dd*2*f}}}
+
+const _boomPH=boomFX;boomFX=function(x,y,z,r,kind,air){try{physBlast(x,y,z,r,air)}catch(e){}return _boomPH(x,y,z,r,kind,air)};
+
+// soldiers killed by a blast are thrown by it
+const _udPH=unitDeath;unitDeath=function(u,g){_udPH(u,g);try{if(UT[u.t].cat!=='inf')return;const now=phNow();let b=null;
+  for(const e of PH.recent)if(now-e.t<.6&&e.r>=5&&d2(e.x,e.z,u.x,u.z)<(e.r*1.1)**2){b=e;break}if(!b)return;
+  const d=REN.deaths.find(q=>q.g===g);if(!d)return;const dx=u.x-b.x,dz=u.z-b.z,dd=Math.hypot(dx,dz)||1,f=1-Math.min(1,dd/(b.r*1.1));
+  d.fly={vx:dx/dd*(6+b.r*.5*f),vy:6+Math.min(18,b.r*.45)*f,vz:dz/dd*(6+b.r*.5*f),spin:rnd(-7,7)}}catch(e){}};
+
+// trees: the lean is added on top of the normal yaw / burnt tilt
+const _lq=new THREE.Quaternion(),_lv=new THREE.Vector3();
+const _setTreePH=setTree;setTree=function(im,t){if(!t.lean){_setTreePH(im,t);return}
+  const s=t.s*(t.alive?1:0.001);_tq.setFromAxisAngle(_tv.set(0,1,0),t.i*2.3);if(t.burnt&&t.alive)_tq.multiply(_lq.setFromAxisAngle(_tv.set(1,0,0),(t.i%7-3)*.05));
+  _lq.setFromAxisAngle(_lv.set(t.lz,0,-t.lx),t.lean);_tq.premultiply(_lq);
+  _tm.compose(_tv.set(t.x,t.y-.3,t.z),_tq,_ts.set(s,s*(t.burnt?.88:1),s));im.setMatrixAt(t.mi,_tm);
+  if(t.burnt)_c1.set(0x2a2622);else _c1.setHSL(.16+((t.i*37)%10)/90,.3,.74+((t.i*7)%10)/40);im.setColorAt(t.mi,_c1)};
+
+// fog banks: low drifting mist you can actually blow away
+const WISP={fog:{rate:46,a:.34,c:.82,s0:30,s1:56,h:14},snow:{rate:12,a:.13,c:.9,s0:22,s1:36,h:8},storm:{rate:10,a:.12,c:.6,s0:22,s1:36,h:10},rain:{rate:6,a:.1,c:.68,s0:20,s1:32,h:8}};
+function inPocket(x,z,now,m){for(const p of PH.pk){const R=pkR(p,now)*(m||1);if(R>0&&d2(x,z,p.x,p.z)<R*R)return p}return null}
+function wispTick(dt,now){const W=WISP[G.weather];if(!W||!PS_SMOKE)return;PH.wispAcc+=dt*W.rate*(window.IH_MOBILE?.5:1)*(QUAL.lvl>1?.5:1);
+  const span=Math.min(560,Math.max(220,CAM.dist*1.3));
+  while(PH.wispAcc>=1){PH.wispAcc--;const a=rnd(0,TAU),rr=Math.sqrt(Math.random())*span,x=CAM.tx+Math.cos(a)*rr,z=CAM.tz+Math.sin(a)*rr;if(Math.abs(x)>HALF||Math.abs(z)>HALF||inPocket(x,z,now,1.1))continue;
+    const c=W.c+rnd(-.03,.03);spawn(PS_SMOKE,x,hAt(x,z)+rnd(2,W.h),z,rnd(-1,1),0,rnd(-1,1),rnd(10,15),W.s0,W.s1,c,c*1.01,c*1.03,W.a,9)}}
+
+function physFrame(dt){if(!G||typeof scene==='undefined')return;const now=phNow();
+  PH.pk=PH.pk.filter(p=>now-p.t<p.life);
+  // rain/snow velocity from shock waves, and keep the cleared hole open while the pocket lasts
+  if(WXS.pts){const a=WXS.pts.geometry.attributes.position,p=a.array,O=WXS.pts.position;if(!PH.v||PH.v.length!==p.length)PH.v=new Float32Array(p.length);const v=PH.v,dr=Math.max(0,1-dt*1.8);let moved=0;
+    for(let i=0;i<p.length;i+=3){if(v[i]||v[i+1]||v[i+2]){p[i]+=v[i]*dt;p[i+1]+=v[i+1]*dt;p[i+2]+=v[i+2]*dt;v[i]*=dr;v[i+1]*=dr;v[i+2]*=dr;if(Math.abs(v[i])+Math.abs(v[i+1])+Math.abs(v[i+2])<.3)v[i]=v[i+1]=v[i+2]=0;moved=1}
+      if(PH.pk.length){const wx=p[i]+O.x,wz=p[i+2]+O.z,q=inPocket(wx,wz,now);if(q){const dx=wx-q.x,dz=wz-q.z,dd=Math.hypot(dx,dz)||1,R=pkR(q,now);if(dd<R*.75&&v[i]===0){for(let k=0;k<4;k++){p[i]=rnd(-260,260);p[i+2]=rnd(-260,260);if(!inPocket(p[i]+O.x,p[i+2]+O.z,now))break}}else{v[i]+=dx/dd*160*dt;v[i+2]+=dz/dd*160*dt}moved=1}}
+      if(p[i]>300||p[i]<-300||p[i+2]>300||p[i+2]<-300){p[i]=rnd(-260,260);p[i+2]=rnd(-260,260);p[i+1]=220;v[i]=v[i+1]=v[i+2]=0}}
+    if(moved)a.needsUpdate=true}
+  // mist that drifts back into a pocket gets pushed out again
+  if(PH.pk.length&&PS_SMOKE){const D=PS_SMOKE;for(let i=0;i<D.hi;i++){if(D.k[i]!==9||D.life[i]<=0)continue;const q=inPocket(D.x[i],D.z[i],now);if(q){const dx=D.x[i]-q.x,dz=D.z[i]-q.z,dd=Math.hypot(dx,dz)||1;D.vx[i]+=dx/dd*40*dt;D.vz[i]+=dz/dd*40*dt}}}
+  if(started&&!G.over)wispTick(dt,now);
+  // tree sway: bent away by the blast, then a damped spring back to upright
+  if(PH.lean.size){for(const t of PH.lean){const tau=now-t.lt;let ang;if(tau>3.5||!t.alive){ang=0;PH.lean.delete(t)}else{const up=Math.min(1,tau/.08);ang=t.la*up*Math.exp(-1.6*tau)*Math.cos(Math.max(0,tau-.08)*5.5)}
+    t.lean=ang||0;if(!ang)t.la=0;t.dirty=1}G.treeDirty=1}
+  // thrown bodies
+  for(const d of REN.deaths){if(!d.fly)continue;const f=d.fly,g=d.g;f.vy-=30*dt;g.position.x+=f.vx*dt;g.position.y+=f.vy*dt;g.position.z+=f.vz*dt;g.rotation.z+=f.spin*dt;
+    const gh=hAt(g.position.x,g.position.z);if(g.position.y<=gh&&f.vy<0){g.position.y=gh;if(f.vy<-8){f.vy*=-.3;f.vx*=.5;f.vz*=.5;f.spin*=.5;dust(g.position.x,gh,g.position.z,2)}else{d.fly=null;d.flown=1;d.t=Math.max(d.t,.6)}}}}
+
+const _wxFramePH=wxFrame;wxFrame=function(dt){_wxFramePH(dt);try{physFrame(dt)}catch(e){if(!PH.err){PH.err=1;console.warn('physFrame',e)}}};
+
+// the big fog lifts a little while you look at a fresh pocket
+const _updateSkyPH=updateSky;updateSky=function(...a){_updateSkyPH(...a);try{if(!PH.pk.length||!badWeather()||!scene.fog)return;const W=WX[G.weather],now=phNow();let s=0;
+  for(const p of PH.pk){const R=pkR(p,now);if(R<=0)continue;const d=Math.hypot(CAM.tx-p.x,CAM.tz-p.z);s=Math.max(s,clamp(1-(d-R)/(R+120),0,1)*(R/p.r))}
+  if(s>0){s*=.75;scene.fog.near*=1+(1/W.fog-1)*s;scene.fog.far*=1+(1/Math.max(.45,W.fog+.15)-1)*s}}catch(e){}};
+
 })();
 </script>
 </body>
